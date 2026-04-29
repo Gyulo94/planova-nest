@@ -1,0 +1,416 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String @db.Uuid
+  provider          String
+  providerAccountId String
+  User              User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Activity {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  action      String
+  description String
+  metadata    Json?
+  workspaceId String?  @db.Uuid
+  projectId   String?  @db.Uuid
+  taskId      String?  @db.Uuid
+  userId      String   @db.Uuid
+  createdAt   DateTime @default(now())
+  User        User     @relation(fields: [userId], references: [id])
+  Task        Task[]
+
+  @@index([createdAt])
+  @@index([projectId])
+  @@index([taskId])
+  @@index([userId])
+  @@index([workspaceId])
+}
+
+model Approval {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  taskId    String   @db.Uuid
+  userId    String   @db.Uuid
+  comment   String?
+  createdAt DateTime @default(now())
+  Task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  User      User     @relation(fields: [userId], references: [id])
+
+  @@unique([taskId, userId])
+  @@index([taskId])
+}
+
+model Attachment {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fileName  String
+  fileUrl   String
+  fileSize  Int
+  mimeType  String
+  taskId    String   @db.Uuid
+  createdAt DateTime @default(now())
+  Task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+}
+
+model Backlog {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title            String
+  description      String?
+  priority         Priority  @default(MEDIUM)
+  workspaceId      String    @db.Uuid
+  projectId        String?   @db.Uuid
+  createdById      String    @db.Uuid
+  promotedToTaskId String?   @db.Uuid
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime
+  User             User      @relation(fields: [createdById], references: [id])
+  Project          Project?  @relation(fields: [projectId], references: [id])
+  Task             Task?     @relation(fields: [promotedToTaskId], references: [id])
+  Workspace        Workspace @relation(fields: [workspaceId], references: [id])
+  backlogLabels    BacklogLabel[]
+
+  @@index([priority])
+  @@index([createdAt])
+  @@index([createdById])
+  @@index([projectId])
+  @@index([workspaceId])
+}
+
+model Comment {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  content   String
+  taskId    String   @db.Uuid
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now())
+  Task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  User      User     @relation(fields: [userId], references: [id])
+
+  @@index([createdAt])
+  @@index([taskId])
+}
+
+model Epic {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  epicNumber  Int
+  title       String
+  description String?
+  progress    Int       @default(0)
+  startDate   DateTime?
+  dueDate     DateTime?
+  completedAt DateTime?
+  workspaceId String    @db.Uuid
+  projectId   String?   @db.Uuid
+  createdById String    @db.Uuid
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime
+  User        User      @relation(fields: [createdById], references: [id])
+  Project     Project?  @relation(fields: [projectId], references: [id])
+  Workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  Task        Task[]
+
+  @@index([projectId])
+  @@index([workspaceId])
+}
+
+model Idea {
+  id               String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title            String
+  description      String?
+  status           IdeaStatus @default(RAW)
+  priority         Priority   @default(MEDIUM)
+  workspaceId      String     @db.Uuid
+  projectId        String?    @db.Uuid
+  createdById      String     @db.Uuid
+  promotedToTaskId String?    @db.Uuid
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime
+  User             User       @relation(fields: [createdById], references: [id])
+  Project          Project?   @relation(fields: [projectId], references: [id])
+  Task             Task?      @relation(fields: [promotedToTaskId], references: [id])
+  Workspace        Workspace  @relation(fields: [workspaceId], references: [id])
+  ideaLabels       IdeaLabel[]
+
+  @@index([createdAt])
+  @@index([createdById])
+  @@index([priority])
+  @@index([projectId])
+  @@index([status])
+  @@index([workspaceId])
+}
+
+model Image {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  url         String
+  workspaceId String?    @unique @db.Uuid
+  projectId   String?    @unique @db.Uuid
+  createdAt   DateTime   @default(now())
+  Workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  Project     Project?
+
+  @@index([projectId])
+  @@index([workspaceId])
+}
+
+model Label {
+  id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  bgColor   String
+  textColor String
+  projectId String      @db.Uuid
+  Project   Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  TaskLabel TaskLabel[]
+  ideaLabels IdeaLabel[]
+  backlogLabels BacklogLabel[]
+
+  @@unique([projectId, name])
+  @@index([name])
+  @@index([projectId])
+}
+
+model Milestone {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String
+  icon        String?
+  color       String?
+  description String?
+  dueDate     DateTime
+  completed   Boolean   @default(false)
+  workspaceId String    @db.Uuid
+  projectId   String?   @db.Uuid
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime
+  Project     Project?  @relation(fields: [projectId], references: [id])
+  Workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  Task        Task[]
+
+  @@index([completed])
+  @@index([dueDate])
+  @@index([projectId])
+  @@index([workspaceId])
+}
+
+model Project {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String
+  description   String?
+  imageId       String?         @unique @db.Uuid
+  workspaceId   String          @db.Uuid
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime
+  Backlog       Backlog[]
+  Epic          Epic[]
+  Idea          Idea[]
+  Label         Label[]
+  Milestone     Milestone[]
+  Image         Image?          @relation(fields: [imageId], references: [id])
+  Workspace     Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  ProjectMember ProjectMember[]
+  Task          Task[]
+
+  @@index([workspaceId])
+}
+
+model ProjectMember {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId String   @db.Uuid
+  userId    String   @db.Uuid
+  role      Role
+  joinedAt  DateTime @default(now())
+  Project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  User      User     @relation(fields: [userId], references: [id])
+
+  @@unique([projectId, userId])
+  @@index([joinedAt])
+  @@index([projectId])
+}
+
+model Subtask {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title     String
+  completed Boolean @default(false)
+  order     Int     @default(0)
+  taskId    String  @db.Uuid
+  Task      Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([completed])
+  @@index([taskId])
+}
+
+model Task {
+  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  taskNumber        Int
+  title             String
+  description       String?
+  status            TaskStatus     @default(TODO)
+  priority          Priority       @default(MEDIUM)
+  startDate         DateTime?
+  dueDate           DateTime?
+  completedAt       DateTime?
+  order             Int            @default(1000)
+  projectId         String         @db.Uuid
+  epicId            String?        @db.Uuid
+  milestoneId       String?        @db.Uuid
+  requiredApprovals Int            @default(1)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime
+  Approval          Approval[]
+  Attachment        Attachment[]
+  Backlog           Backlog[]
+  Comment           Comment[]
+  Idea              Idea[]
+  Subtask           Subtask[]
+  Epic              Epic?          @relation(fields: [epicId], references: [id])
+  Milestone         Milestone?     @relation(fields: [milestoneId], references: [id])
+  Project           Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  TaskAssignee      TaskAssignee[]
+  TaskLabel         TaskLabel[]
+  Activity          Activity[]
+
+  @@index([dueDate])
+  @@index([priority])
+  @@index([projectId])
+  @@index([projectId, status, order])
+  @@index([status])
+}
+
+model TaskAssignee {
+  id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  taskId String @db.Uuid
+  userId String @db.Uuid
+  Task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  User   User   @relation(fields: [userId], references: [id])
+
+  @@unique([taskId, userId])
+}
+
+model TaskLabel {
+  taskId  String @db.Uuid
+  labelId String @db.Uuid
+  Label   Label  @relation(fields: [labelId], references: [id], onDelete: Cascade)
+  Task    Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, labelId])
+  @@index([labelId])
+  @@index([taskId])
+}
+
+model IdeaLabel {
+  ideaId  String @db.Uuid
+  labelId String @db.Uuid
+  Label   Label  @relation(fields: [labelId], references: [id], onDelete: Cascade)
+  Idea    Idea   @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+
+  @@id([ideaId, labelId])
+  @@index([labelId])
+  @@index([labelId, ideaId])
+  @@index([ideaId])
+}
+
+model BacklogLabel {
+  backlogId  String @db.Uuid
+  labelId String @db.Uuid
+  Label   Label  @relation(fields: [labelId], references: [id], onDelete: Cascade)
+  Backlog  Backlog   @relation(fields: [backlogId], references: [id], onDelete: Cascade)
+
+  @@id([backlogId, labelId])
+  @@index([labelId])
+  @@index([labelId, backlogId])
+  @@index([backlogId])
+}
+
+model User {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email           String            @unique
+  name            String?
+  image           String?
+  password        String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime
+  Account         Account[]
+  Activity        Activity[]
+  Approval        Approval[]
+  Backlog         Backlog[]
+  Comment         Comment[]
+  Epic            Epic[]
+  Idea            Idea[]
+  ProjectMember   ProjectMember[]
+  TaskAssignee    TaskAssignee[]
+  Workspace       Workspace[]
+  WorkspaceMember WorkspaceMember[]
+
+  @@index([createdAt])
+  @@index([email])
+}
+
+model Workspace {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String
+  imageId         String?           @db.Uuid
+  inviteCode      String?           @unique
+  ownerId         String            @db.Uuid
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime
+  Backlog         Backlog[]
+  Epic            Epic[]
+  Idea            Idea[]
+  Image           Image?
+  Milestone       Milestone[]
+  Project         Project[]
+  User            User              @relation(fields: [ownerId], references: [id])
+  WorkspaceMember WorkspaceMember[]
+}
+
+model WorkspaceMember {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId String    @db.Uuid
+  userId      String    @db.Uuid
+  role        Role
+  joinedAt    DateTime  @default(now())
+  User        User      @relation(fields: [userId], references: [id])
+  Workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([joinedAt])
+  @@index([workspaceId])
+}
+
+enum IdeaStatus {
+  RAW
+  TO_CONSIDER
+  REFINED
+  PROMOTED
+  ARCHIVED
+}
+
+enum Priority {
+  URGENT
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum TaskStatus {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  REVIEW
+  DONE
+}
