@@ -4,6 +4,7 @@ import { PORT } from './global/constants';
 import { ApiInterceptor } from './global/apis/api.interceptor';
 import { HttpExceptionFilter } from './global/filters/http-exception.filter';
 import { winstonLogger } from './global/config/winston.config';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -11,6 +12,16 @@ async function bootstrap() {
     bufferLogs: true,
   });
   app.setGlobalPrefix('api');
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+    }),
+  );
   const reflector = app.get(Reflector);
   app.useGlobalFilters(new HttpExceptionFilter(winstonLogger));
   app.useGlobalInterceptors(new ApiInterceptor(reflector));
