@@ -4,6 +4,7 @@ import {
   Get,
   Logger,
   Post,
+  Put,
   Req,
   Res,
   UseGuards,
@@ -22,6 +23,7 @@ import { Provider, User } from '@prisma/client';
 import { Public } from 'src/global/decorators/public.decorator';
 import { CLIENT_URL } from 'src/global/constants';
 import { ApiException } from 'src/global/exceptions/api.exception';
+import { ResetPasswordRequest } from '../request/reset-password.request';
 
 @Public()
 @Controller('auth')
@@ -75,7 +77,10 @@ export class AuthController {
 
   @Message(ResponseMessage.VERIFY_EMAIL_SUCCESS)
   @Post('verify-email')
-  async verifyEmail(@Body() request: EmailRequest) {
+  async verifyEmail(
+    @Body() request: EmailRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const response = await this.emailService.verifyEmail(request);
     return response;
   }
@@ -100,6 +105,22 @@ export class AuthController {
     return this.handleSocialCallback(req, res, Provider.KAKAO);
   }
 
+  @Post('logout')
+  async logout(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<void> {
+    await this.authService.logout(req);
+    clearCookies(res);
+  }
+
+  @Message(ResponseMessage.RESET_PASSWORD_SUCCESS)
+  @Put('reset-password')
+  async resetPassword(@Body() request: ResetPasswordRequest) {
+    const response = await this.userService.resetPassword(request);
+    return response;
+  }
+
   private async handleSocialCallback(
     req: Request,
     res: Response,
@@ -121,14 +142,5 @@ export class AuthController {
 
       return res.redirect(`${CLIENT_URL}/login?error=${errorCode}`);
     }
-  }
-
-  @Post('logout')
-  async logout(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<void> {
-    await this.authService.logout(req);
-    clearCookies(res);
   }
 }

@@ -5,7 +5,6 @@ import { EmailRequest } from '../request/email.request';
 import { EmailServerRequest } from '../request/email-server.request';
 import { UserService } from 'src/user/service/user.service';
 import { RedisService } from 'src/global/redis/serivce/redis.service';
-import { RedisKey } from 'src/global/redis/redis.key';
 import { ApiException } from 'src/global/exceptions/api.exception';
 import { ErrorCode } from 'src/global/enums/error-code.enum';
 
@@ -42,6 +41,10 @@ export class EmailService {
 
     if (request.type === 'reset' && !user) {
       throw new ApiException(ErrorCode.EMAIL_NOT_FOUND);
+    }
+
+    if (user && user.provider !== 'LOCAL') {
+      throw new ApiException(ErrorCode.RESET_PASSWORD_NOT_ALLOWED_SOCIAL_USER);
     }
 
     return EmailServerRequest.toModel({
@@ -88,7 +91,7 @@ export class EmailService {
       }
 
       if (request.type === 'register') {
-        await this.completeRegister(email, request.token);
+        await this.userService.completeRegister(email, request.token!);
       }
 
       return { email };
@@ -98,25 +101,5 @@ export class EmailService {
       this.LOGGER.error('이메일 검증 처리 중 오류 발생', error);
       throw new ApiException(ErrorCode.INTERNAL_SERVER_ERROR);
     }
-  }
-
-  private async completeRegister(email: string, token: string): Promise<void> {
-    const userInfoStr = await this.redis.get(
-      RedisKey.register.userInfoByEmail(email),
-    );
-
-    if (!userInfoStr) {
-      throw new ApiException(ErrorCode.FORBIDDEN);
-    }
-
-    const userInfo = JSON.parse(userInfoStr);
-
-    await this.userService.saveUser(userInfo);
-
-    await Promise.all([
-      this.redis.del(RedisKey.register.userInfoByEmail(email)),
-      this.redis.del(RedisKey.register.email(email)),
-      this.redis.del(token),
-    ]);
   }
 }

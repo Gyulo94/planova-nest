@@ -134,7 +134,7 @@ export class AuthService {
     let payload: Payload | null = null;
 
     try {
-      payload = await this.jwtService.verifyAsync(refreshToken, {
+      payload = await this.jwtService.verifyAsync<Payload>(refreshToken, {
         secret: JWT_REFRESH_KEY,
       });
     } catch {

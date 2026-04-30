@@ -10,6 +10,7 @@ import { User } from '@prisma/client';
 import { UserResponse } from '../response/user.response';
 import { JWT_REFRESH_KEY_EXPIRES_IN } from 'src/global/constants';
 import { SocialUserRequest } from '../request/social-user.request';
+import { ResetPasswordRequest } from 'src/auth/request/reset-password.request';
 
 @Injectable()
 export class UserService {
@@ -42,9 +43,29 @@ export class UserService {
     );
   }
 
-  async saveUser(request: UserRequest): Promise<void> {
-    await this.validateEmailNotExists(request.email);
-    await this.userRepository.create(UserRequest.toModel(request));
+  async completeRegister(email: string, token: string): Promise<User | null> {
+    const userInfoStr = await this.redis.get(
+      RedisKey.register.userInfoByEmail(email),
+    );
+
+    if (!userInfoStr) {
+      throw new ApiException(ErrorCode.FORBIDDEN);
+    }
+
+    const userInfo = JSON.parse(userInfoStr);
+
+    await this.validateEmailNotExists(userInfo.email);
+    await this.userRepository.create(UserRequest.toModel(userInfo));
+
+    await Promise.all([
+      this.redis.del(RedisKey.register.userInfoByEmail(email)),
+      this.redis.del(RedisKey.register.email(email)),
+      this.redis.del(token),
+    ]);
+
+    const response = await this.userRepository.findByEmail(email);
+
+    return response;
   }
 
   async findById(id: string): Promise<User | null> {
@@ -103,5 +124,25 @@ export class UserService {
     return this.userRepository.createSocialUser(
       SocialUserRequest.toModel(request),
     );
+  }
+
+  async resetPassword(request: ResetPasswordRequest) {
+    const user = await this.findByEmail(request.email);
+    if (!user) {
+      throw new ApiException(ErrorCode.EMAIL_NOT_FOUND);
+    }
+
+    const tokenKey = RedisKey.token(request.token);
+    const resetKey = RedisKey.resetPassword.email(request.email);
+
+    if (user.provider !== 'LOCAL') {
+      throw new ApiException(ErrorCode.RESET_PASSWORD_NOT_ALLOWED_SOCIAL_USER);
+    }
+
+    const hashedPassword = bcrypt.hashSync(request.password, 10);
+
+    await this.userRepository.updatePassword(user.id, hashedPassword);
+
+    await Promise.all([this.redis.del(tokenKey), this.redis.del(resetKey)]);
   }
 }

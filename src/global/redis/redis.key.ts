@@ -3,6 +3,7 @@ import { APP_NAME } from '../constants';
 const PREFIX = APP_NAME;
 
 export const RedisKey = {
+  token: (token: string) => `${token}`,
   register: {
     userInfoByEmail: (email: string): string =>
       `${PREFIX}:register:userInfo:${email}`,
@@ -10,6 +11,9 @@ export const RedisKey = {
   },
   login: {
     refreshToken: (userId: string) => `${PREFIX}:RT:${userId}`,
+  },
+  resetPassword: {
+    email: (email: string) => `${PREFIX}:reset:${email}`,
   },
 
   user: {
