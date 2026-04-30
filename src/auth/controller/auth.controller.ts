@@ -16,7 +16,7 @@ import { Message } from 'src/global/decorators/message.decorator';
 import { ResponseMessage } from 'src/global/enums/response-message.enum';
 import { EmailRequest } from 'src/email/request/email.request';
 import { EmailService } from 'src/email/service/email.service';
-import { setCookies } from 'src/global/utils';
+import { clearCookies, setCookies } from 'src/global/utils';
 import type { Request, Response } from 'express';
 import { Provider, User } from '@prisma/client';
 import { Public } from 'src/global/decorators/public.decorator';
@@ -121,5 +121,14 @@ export class AuthController {
 
       return res.redirect(`${CLIENT_URL}/login?error=${errorCode}`);
     }
+  }
+
+  @Post('logout')
+  async logout(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<void> {
+    await this.authService.logout(req);
+    clearCookies(res);
   }
 }

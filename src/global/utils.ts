@@ -22,3 +22,16 @@ export function setCookies(
     maxAge: JWT_REFRESH_KEY_EXPIRES_IN * 1000,
   });
 }
+
+export function clearCookies(res: Response) {
+  res.clearCookie('accessToken', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+  });
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+  });
+}

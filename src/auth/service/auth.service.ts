@@ -123,4 +123,29 @@ export class AuthService {
 
     return this.login(user);
   }
+
+  async logout(req: Request): Promise<void> {
+    const refreshToken = req.cookies?.['refreshToken'];
+    if (!refreshToken) return;
+
+    const getRefreshKey = (id: string) => RedisKey.login.refreshToken(id);
+    const getSessionKey = (id: string) => RedisKey.user.session(id);
+
+    let payload: Payload | null = null;
+
+    try {
+      payload = await this.jwtService.verifyAsync(refreshToken, {
+        secret: JWT_REFRESH_KEY,
+      });
+    } catch {
+      payload = this.jwtService.decode(refreshToken) as Payload | null;
+    }
+
+    if (payload?.id) {
+      await Promise.all([
+        this.redis.del(getRefreshKey(payload.id)),
+        this.redis.del(getSessionKey(payload.id)),
+      ]);
+    }
+  }
 }
