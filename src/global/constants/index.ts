@@ -19,3 +19,7 @@ export const EMAIL_URL = process.env.EMAIL_URL;
 export const LOGO = process.env.LOGO;
 export const SENDER_EMAIL = process.env.SENDER_EMAIL;
 export const SENDER_PWD = process.env.SENDER_PWD;
+export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+export const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+export const KAKAO_CLIENT_ID = process.env.KAKAO_CLIENT_ID;
+export const KAKAO_CLIENT_SECRET = process.env.KAKAO_CLIENT_SECRET;

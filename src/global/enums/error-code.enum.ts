@@ -19,7 +19,7 @@ export enum ErrorCode {
   INSUFFICIENT_ROLE = 'AUTH_003',
   INVALID_OR_EXPIRED_TOKEN = 'AUTH_004',
   ALREADY_EXIST_LOCAL_USER = 'AUTH_005',
-  ALEADY_EXIST_SOCIAL_USER = 'AUTH_006',
+  ALREADY_EXIST_SOCIAL_USER = 'AUTH_006',
   REFRESH_TOKEN_NOT_FOUND = 'AUTH_007',
   INVALID_REFRESH_TOKEN = 'AUTH_008',
 }
@@ -85,7 +85,7 @@ export const ErrorCodeMap: Record<
     status: HttpStatus.BAD_REQUEST,
     message: '이미 이메일/비밀번호로 가입된 유저입니다.',
   },
-  [ErrorCode.ALEADY_EXIST_SOCIAL_USER]: {
+  [ErrorCode.ALREADY_EXIST_SOCIAL_USER]: {
     status: HttpStatus.BAD_REQUEST,
     message: '이미 소셜 로그인으로 가입된 유저입니다.',
   },

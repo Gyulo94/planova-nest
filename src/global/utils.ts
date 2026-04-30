@@ -21,5 +21,4 @@ export function setCookies(
     sameSite: 'lax',
     maxAge: JWT_REFRESH_KEY_EXPIRES_IN * 1000,
   });
-  return res.json({ ok: true });
 }

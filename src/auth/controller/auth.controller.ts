@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Logger,
   Post,
   Req,
@@ -17,8 +18,10 @@ import { EmailRequest } from 'src/email/request/email.request';
 import { EmailService } from 'src/email/service/email.service';
 import { setCookies } from 'src/global/utils';
 import type { Request, Response } from 'express';
-import { User } from '@prisma/client';
+import { Provider, User } from '@prisma/client';
 import { Public } from 'src/global/decorators/public.decorator';
+import { CLIENT_URL } from 'src/global/constants';
+import { ApiException } from 'src/global/exceptions/api.exception';
 
 @Public()
 @Controller('auth')
@@ -47,14 +50,17 @@ export class AuthController {
 
   @Post('login')
   @UseGuards(AuthGuard('local'))
-  async login(@Req() req: Request, @Res() res: Response) {
+  async login(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const user: User = req.user as User;
     const { accessToken, refreshToken } = await this.authService.login(user);
     return setCookies(res, accessToken, refreshToken);
   }
 
   @Post('refresh')
-  async refresh(@Req() req: Request, @Res() res: Response) {
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const { accessToken, refreshToken } = await this.authService.refresh(req);
     return setCookies(res, accessToken, refreshToken);
   }
@@ -72,5 +78,48 @@ export class AuthController {
   async verifyEmail(@Body() request: EmailRequest) {
     const response = await this.emailService.verifyEmail(request);
     return response;
+  }
+
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  googleLogin() {}
+
+  @Get('callback/google')
+  @UseGuards(AuthGuard('google'))
+  async googleCallback(@Req() req: Request, @Res() res: Response) {
+    return this.handleSocialCallback(req, res, Provider.GOOGLE);
+  }
+
+  @Get('kakao')
+  @UseGuards(AuthGuard('kakao'))
+  kakaoLogin() {}
+
+  @Get('callback/kakao')
+  @UseGuards(AuthGuard('kakao'))
+  async kakaoCallback(@Req() req: Request, @Res() res: Response) {
+    return this.handleSocialCallback(req, res, Provider.KAKAO);
+  }
+
+  private async handleSocialCallback(
+    req: Request,
+    res: Response,
+    provider: Provider,
+  ) {
+    try {
+      const { accessToken, refreshToken } = await this.authService.socialLogin(
+        req.user,
+      );
+
+      setCookies(res, accessToken, refreshToken);
+
+      return res.redirect(`${CLIENT_URL}?social=1&provider=${provider}`);
+    } catch (error) {
+      const errorCode =
+        error instanceof ApiException
+          ? error.getErrorCode()
+          : 'SOCIAL_LOGIN_FAILED';
+
+      return res.redirect(`${CLIENT_URL}/login?error=${errorCode}`);
+    }
   }
 }

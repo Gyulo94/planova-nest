@@ -15,5 +15,9 @@ declare module NodeJS {
     LOGO: string;
     SENDER_EMAIL: string;
     SENDER_PWD: string;
+    GOOGLE_CLIENT_ID: string;
+    GOOGLE_CLIENT_SECRET: string;
+    KAKAO_CLIENT_ID: string;
+    KAKAO_CLIENT_SECRET: string;
   }
 }

@@ -33,6 +33,8 @@ export class AuthService {
     if (user && user.password && bcrypt.compareSync(password, user.password)) {
       const { password, ...result } = user;
       return result;
+    } else if (user && user.provider !== 'LOCAL') {
+      throw new ApiException(ErrorCode.ALREADY_EXIST_SOCIAL_USER);
     } else {
       throw new ApiException(ErrorCode.INVALID_EMAIL_OR_PASSWORD);
     }
@@ -104,5 +106,21 @@ export class AuthService {
     ]);
 
     return newTokens;
+  }
+
+  async socialLogin(socialUser: any): Promise<TokenResponse> {
+    if (socialUser?.error) {
+      throw socialUser.error instanceof ApiException
+        ? socialUser.error
+        : new ApiException(ErrorCode.ALREADY_EXIST_LOCAL_USER);
+    }
+
+    if (!socialUser?.id) {
+      throw new ApiException(ErrorCode.ALREADY_EXIST_LOCAL_USER);
+    }
+
+    const user = socialUser as User;
+
+    return this.login(user);
   }
 }

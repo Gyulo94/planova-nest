@@ -9,6 +9,7 @@ import * as bcrypt from 'bcryptjs';
 import { User } from '@prisma/client';
 import { UserResponse } from '../response/user.response';
 import { JWT_REFRESH_KEY_EXPIRES_IN } from 'src/global/constants';
+import { SocialUserRequest } from '../request/social-user.request';
 
 @Injectable()
 export class UserService {
@@ -80,5 +81,27 @@ export class UserService {
     if (await this.findByEmail(email)) {
       throw new ApiException(ErrorCode.ALREADY_EXIST_EMAIL);
     }
+  }
+
+  async findOrCreateSocialUser(request: SocialUserRequest): Promise<User> {
+    const { email, provider } = request;
+
+    const existingUser = await this.findByEmail(email);
+
+    if (existingUser) {
+      if (existingUser.provider === provider) {
+        return existingUser;
+      }
+
+      if (existingUser.provider === 'LOCAL') {
+        throw new ApiException(ErrorCode.ALREADY_EXIST_LOCAL_USER);
+      }
+
+      throw new ApiException(ErrorCode.ALREADY_EXIST_SOCIAL_USER);
+    }
+
+    return this.userRepository.createSocialUser(
+      SocialUserRequest.toModel(request),
+    );
   }
 }

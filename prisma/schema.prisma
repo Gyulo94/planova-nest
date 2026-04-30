@@ -7,16 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Account {
-  id                String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId            String @db.Uuid
-  provider          String
-  providerAccountId String
-  User              User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-}
-
 model Activity {
   id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   action      String
@@ -336,9 +326,9 @@ model User {
   name            String?
   image           String?
   password        String?
+  provider        Provider          @default(LOCAL)
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
-  Account         Account[]
   Activity        Activity[]
   Approval        Approval[]
   Backlog         Backlog[]
@@ -384,6 +374,12 @@ model WorkspaceMember {
   @@unique([workspaceId, userId])
   @@index([joinedAt])
   @@index([workspaceId])
+}
+
+enum Provider {
+  LOCAL
+  GOOGLE
+  KAKAO
 }
 
 enum IdeaStatus {
