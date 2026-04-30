@@ -5,11 +5,17 @@ import { ApiInterceptor } from './global/apis/api.interceptor';
 import { HttpExceptionFilter } from './global/filters/http-exception.filter';
 import { winstonLogger } from './global/config/winston.config';
 import { ValidationPipe } from '@nestjs/common';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: winstonLogger,
     bufferLogs: true,
+  });
+  app.use(cookieParser());
+  app.enableCors({
+    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    credentials: true,
   });
   app.setGlobalPrefix('api');
   app.useGlobalPipes(

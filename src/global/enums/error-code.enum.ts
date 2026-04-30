@@ -20,6 +20,8 @@ export enum ErrorCode {
   INVALID_OR_EXPIRED_TOKEN = 'AUTH_004',
   ALREADY_EXIST_LOCAL_USER = 'AUTH_005',
   ALEADY_EXIST_SOCIAL_USER = 'AUTH_006',
+  REFRESH_TOKEN_NOT_FOUND = 'AUTH_007',
+  INVALID_REFRESH_TOKEN = 'AUTH_008',
 }
 
 export const ErrorCodeMap: Record<
@@ -86,5 +88,13 @@ export const ErrorCodeMap: Record<
   [ErrorCode.ALEADY_EXIST_SOCIAL_USER]: {
     status: HttpStatus.BAD_REQUEST,
     message: '이미 소셜 로그인으로 가입된 유저입니다.',
+  },
+  [ErrorCode.REFRESH_TOKEN_NOT_FOUND]: {
+    status: HttpStatus.UNAUTHORIZED,
+    message: '리프레시 토큰이 없습니다.',
+  },
+  [ErrorCode.INVALID_REFRESH_TOKEN]: {
+    status: HttpStatus.UNAUTHORIZED,
+    message: '유효하지 않거나 만료된 리프레시 토큰입니다.',
   },
 };

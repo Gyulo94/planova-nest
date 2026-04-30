@@ -202,6 +202,7 @@ CREATE TABLE "Task" (
     "taskNumber" INTEGER NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT,
+    "progress" INTEGER NOT NULL DEFAULT 0,
     "status" "TaskStatus" NOT NULL DEFAULT 'TODO',
     "priority" "Priority" NOT NULL DEFAULT 'MEDIUM',
     "startDate" TIMESTAMP(3),

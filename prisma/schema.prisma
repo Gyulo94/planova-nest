@@ -252,6 +252,7 @@ model Task {
   taskNumber        Int
   title             String
   description       String?
+  progress          Int            @default(0)
   status            TaskStatus     @default(TODO)
   priority          Priority       @default(MEDIUM)
   startDate         DateTime?
@@ -336,7 +337,7 @@ model User {
   image           String?
   password        String?
   createdAt       DateTime          @default(now())
-  updatedAt       DateTime
+  updatedAt       DateTime          @updatedAt
   Account         Account[]
   Activity        Activity[]
   Approval        Approval[]
