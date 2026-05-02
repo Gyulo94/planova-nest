@@ -11,9 +11,10 @@ import { UserModule } from './user/user.module';
 import { EmailModule } from './email/email.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { WorkspaceModule } from './workspace/workspace.module';
 
 @Module({
-  imports: [GlobalModule, AuthModule, UserModule, EmailModule],
+  imports: [GlobalModule, AuthModule, UserModule, EmailModule, WorkspaceModule],
   providers: [
     {
       provide: APP_GUARD,

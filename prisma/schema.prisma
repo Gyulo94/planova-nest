@@ -17,8 +17,8 @@ model Activity {
   taskId      String?  @db.Uuid
   userId      String   @db.Uuid
   createdAt   DateTime @default(now())
-  User        User     @relation(fields: [userId], references: [id])
-  Task        Task[]
+  user        User     @relation(fields: [userId], references: [id])
+  task        Task[]
 
   @@index([createdAt])
   @@index([projectId])
@@ -33,8 +33,8 @@ model Approval {
   userId    String   @db.Uuid
   comment   String?
   createdAt DateTime @default(now())
-  Task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  User      User     @relation(fields: [userId], references: [id])
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
 
   @@unique([taskId, userId])
   @@index([taskId])
@@ -48,7 +48,7 @@ model Attachment {
   mimeType  String
   taskId    String   @db.Uuid
   createdAt DateTime @default(now())
-  Task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@index([taskId])
 }
@@ -63,11 +63,11 @@ model Backlog {
   createdById      String    @db.Uuid
   promotedToTaskId String?   @db.Uuid
   createdAt        DateTime  @default(now())
-  updatedAt        DateTime
-  User             User      @relation(fields: [createdById], references: [id])
-  Project          Project?  @relation(fields: [projectId], references: [id])
-  Task             Task?     @relation(fields: [promotedToTaskId], references: [id])
-  Workspace        Workspace @relation(fields: [workspaceId], references: [id])
+  updatedAt        DateTime  @updatedAt
+  user             User      @relation(fields: [createdById], references: [id])
+  project          Project?  @relation(fields: [projectId], references: [id])
+  task             Task?     @relation(fields: [promotedToTaskId], references: [id])
+  workspace        Workspace @relation(fields: [workspaceId], references: [id])
   backlogLabels    BacklogLabel[]
 
   @@index([priority])
@@ -83,8 +83,8 @@ model Comment {
   taskId    String   @db.Uuid
   userId    String   @db.Uuid
   createdAt DateTime @default(now())
-  Task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  User      User     @relation(fields: [userId], references: [id])
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
 
   @@index([createdAt])
   @@index([taskId])
@@ -103,11 +103,11 @@ model Epic {
   projectId   String?   @db.Uuid
   createdById String    @db.Uuid
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime
-  User        User      @relation(fields: [createdById], references: [id])
-  Project     Project?  @relation(fields: [projectId], references: [id])
-  Workspace   Workspace @relation(fields: [workspaceId], references: [id])
-  Task        Task[]
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [createdById], references: [id])
+  project     Project?  @relation(fields: [projectId], references: [id])
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  task        Task[]
 
   @@index([projectId])
   @@index([workspaceId])
@@ -124,11 +124,11 @@ model Idea {
   createdById      String     @db.Uuid
   promotedToTaskId String?    @db.Uuid
   createdAt        DateTime   @default(now())
-  updatedAt        DateTime
-  User             User       @relation(fields: [createdById], references: [id])
-  Project          Project?   @relation(fields: [projectId], references: [id])
-  Task             Task?      @relation(fields: [promotedToTaskId], references: [id])
-  Workspace        Workspace  @relation(fields: [workspaceId], references: [id])
+  updatedAt        DateTime   @updatedAt
+  user             User       @relation(fields: [createdById], references: [id])
+  project          Project?   @relation(fields: [projectId], references: [id])
+  task             Task?      @relation(fields: [promotedToTaskId], references: [id])
+  workspace        Workspace  @relation(fields: [workspaceId], references: [id])
   ideaLabels       IdeaLabel[]
 
   @@index([createdAt])
@@ -145,8 +145,8 @@ model Image {
   workspaceId String?    @unique @db.Uuid
   projectId   String?    @unique @db.Uuid
   createdAt   DateTime   @default(now())
-  Workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  Project     Project?
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project     Project?   @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
   @@index([workspaceId])
@@ -158,8 +158,8 @@ model Label {
   bgColor   String
   textColor String
   projectId String      @db.Uuid
-  Project   Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  TaskLabel TaskLabel[]
+  project   Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  taskLabel TaskLabel[]
   ideaLabels IdeaLabel[]
   backlogLabels BacklogLabel[]
 
@@ -179,9 +179,9 @@ model Milestone {
   workspaceId String    @db.Uuid
   projectId   String?   @db.Uuid
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime
-  Project     Project?  @relation(fields: [projectId], references: [id])
-  Workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  updatedAt   DateTime  @updatedAt
+  project     Project?  @relation(fields: [projectId], references: [id])
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
   Task        Task[]
 
   @@index([completed])
@@ -194,19 +194,18 @@ model Project {
   id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name          String
   description   String?
-  imageId       String?         @unique @db.Uuid
   workspaceId   String          @db.Uuid
   createdAt     DateTime        @default(now())
-  updatedAt     DateTime
-  Backlog       Backlog[]
-  Epic          Epic[]
-  Idea          Idea[]
-  Label         Label[]
-  Milestone     Milestone[]
-  Image         Image?          @relation(fields: [imageId], references: [id])
-  Workspace     Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  ProjectMember ProjectMember[]
-  Task          Task[]
+  updatedAt     DateTime        @updatedAt
+  backlog       Backlog[]
+  epic          Epic[]
+  idea          Idea[]
+  label         Label[]
+  milestone     Milestone[]
+  image         Image?          
+  workspace     Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  projectMember ProjectMember[]
+  task          Task[]
 
   @@index([workspaceId])
 }
@@ -217,8 +216,8 @@ model ProjectMember {
   userId    String   @db.Uuid
   role      Role
   joinedAt  DateTime @default(now())
-  Project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  User      User     @relation(fields: [userId], references: [id])
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
 
   @@unique([projectId, userId])
   @@index([joinedAt])
@@ -231,7 +230,7 @@ model Subtask {
   completed Boolean @default(false)
   order     Int     @default(0)
   taskId    String  @db.Uuid
-  Task      Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  task      Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@index([completed])
   @@index([taskId])
@@ -254,19 +253,19 @@ model Task {
   milestoneId       String?        @db.Uuid
   requiredApprovals Int            @default(1)
   createdAt         DateTime       @default(now())
-  updatedAt         DateTime
-  Approval          Approval[]
-  Attachment        Attachment[]
-  Backlog           Backlog[]
-  Comment           Comment[]
-  Idea              Idea[]
-  Subtask           Subtask[]
-  Epic              Epic?          @relation(fields: [epicId], references: [id])
-  Milestone         Milestone?     @relation(fields: [milestoneId], references: [id])
-  Project           Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  TaskAssignee      TaskAssignee[]
-  TaskLabel         TaskLabel[]
-  Activity          Activity[]
+  updatedAt         DateTime       @updatedAt
+  approval          Approval[]
+  attachment        Attachment[]
+  backlog           Backlog[]
+  comment           Comment[]
+  idea              Idea[]
+  subtask           Subtask[]
+  epic              Epic?          @relation(fields: [epicId], references: [id])
+  milestone         Milestone?     @relation(fields: [milestoneId], references: [id])
+  project           Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  taskAssignee      TaskAssignee[]
+  taskLabel         TaskLabel[]
+  activity          Activity[]
 
   @@index([dueDate])
   @@index([priority])
@@ -279,8 +278,8 @@ model TaskAssignee {
   id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   taskId String @db.Uuid
   userId String @db.Uuid
-  Task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  User   User   @relation(fields: [userId], references: [id])
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
 
   @@unique([taskId, userId])
 }
@@ -288,8 +287,8 @@ model TaskAssignee {
 model TaskLabel {
   taskId  String @db.Uuid
   labelId String @db.Uuid
-  Label   Label  @relation(fields: [labelId], references: [id], onDelete: Cascade)
-  Task    Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  label   Label  @relation(fields: [labelId], references: [id], onDelete: Cascade)
+  task    Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@id([taskId, labelId])
   @@index([labelId])
@@ -299,8 +298,8 @@ model TaskLabel {
 model IdeaLabel {
   ideaId  String @db.Uuid
   labelId String @db.Uuid
-  Label   Label  @relation(fields: [labelId], references: [id], onDelete: Cascade)
-  Idea    Idea   @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  label   Label  @relation(fields: [labelId], references: [id], onDelete: Cascade)
+  idea    Idea   @relation(fields: [ideaId], references: [id], onDelete: Cascade)
 
   @@id([ideaId, labelId])
   @@index([labelId])
@@ -311,8 +310,8 @@ model IdeaLabel {
 model BacklogLabel {
   backlogId  String @db.Uuid
   labelId String @db.Uuid
-  Label   Label  @relation(fields: [labelId], references: [id], onDelete: Cascade)
-  Backlog  Backlog   @relation(fields: [backlogId], references: [id], onDelete: Cascade)
+  label   Label  @relation(fields: [labelId], references: [id], onDelete: Cascade)
+  backlog  Backlog   @relation(fields: [backlogId], references: [id], onDelete: Cascade)
 
   @@id([backlogId, labelId])
   @@index([labelId])
@@ -329,16 +328,16 @@ model User {
   provider        Provider          @default(LOCAL)
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
-  Activity        Activity[]
-  Approval        Approval[]
-  Backlog         Backlog[]
-  Comment         Comment[]
-  Epic            Epic[]
-  Idea            Idea[]
-  ProjectMember   ProjectMember[]
-  TaskAssignee    TaskAssignee[]
-  Workspace       Workspace[]
-  WorkspaceMember WorkspaceMember[]
+  activity        Activity[]
+  approval        Approval[]
+  backlog         Backlog[]
+  comment         Comment[]
+  epic            Epic[]
+  idea            Idea[]
+  projectMember   ProjectMember[]
+  taskAssignee    TaskAssignee[]
+  workspace       Workspace[]
+  workspaceMember WorkspaceMember[]
 
   @@index([createdAt])
   @@index([email])
@@ -347,19 +346,18 @@ model User {
 model Workspace {
   id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name            String
-  imageId         String?           @db.Uuid
   inviteCode      String?           @unique
   ownerId         String            @db.Uuid
   createdAt       DateTime          @default(now())
-  updatedAt       DateTime
-  Backlog         Backlog[]
-  Epic            Epic[]
-  Idea            Idea[]
-  Image           Image?
-  Milestone       Milestone[]
-  Project         Project[]
-  User            User              @relation(fields: [ownerId], references: [id])
-  WorkspaceMember WorkspaceMember[]
+  updatedAt       DateTime          @updatedAt
+  backlog         Backlog[]
+  epic            Epic[]
+  idea            Idea[]
+  image           Image?
+  milestone       Milestone[]
+  project         Project[]
+  user            User              @relation(fields: [ownerId], references: [id])
+  workspaceMember WorkspaceMember[]
 }
 
 model WorkspaceMember {
@@ -368,8 +366,8 @@ model WorkspaceMember {
   userId      String    @db.Uuid
   role        Role
   joinedAt    DateTime  @default(now())
-  User        User      @relation(fields: [userId], references: [id])
-  Workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id])
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@unique([workspaceId, userId])
   @@index([joinedAt])
