@@ -12,6 +12,7 @@ declare module NodeJS {
     JWT_REFRESH_KEY_EXPIRES_IN: string;
     CLIENT_URL: string;
     EMAIL_URL: string;
+    FILE_URL: string;
     LOGO: string;
     SENDER_EMAIL: string;
     SENDER_PWD: string;

@@ -16,6 +16,7 @@ export const JWT_REFRESH_KEY_EXPIRES_IN = parseInt(
 );
 export const CLIENT_URL = process.env.CLIENT_URL;
 export const EMAIL_URL = process.env.EMAIL_URL;
+export const FILE_URL = process.env.FILE_URL;
 export const LOGO = process.env.LOGO;
 export const SENDER_EMAIL = process.env.SENDER_EMAIL;
 export const SENDER_PWD = process.env.SENDER_PWD;

@@ -5,12 +5,16 @@ export class WorkspaceResponse {
   name: string;
   image?: string;
 
-  static fromModel(model: WorkspaceWithImage): WorkspaceResponse {
-    const { id, name, image } = model;
+  static fromModel(
+    model: WorkspaceWithImage,
+    image?: string,
+  ): WorkspaceResponse {
+    const { id, name } = model;
     const response = new WorkspaceResponse();
     response.id = id;
     response.name = name;
-    response.image = image?.url;
+    response.image = image;
+
     return response;
   }
 }

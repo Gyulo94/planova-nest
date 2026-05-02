@@ -21,6 +21,11 @@ export function Transactional(options?: TransactionOptions): MethodDecorator {
     }
 
     descriptor.value = async function (this: any, ...args: any[]) {
+      const existingStore = transactionStorage.getTx();
+      if (existingStore?.manualTx) {
+        return originalFn.apply(this, args);
+      }
+
       return transactionStorage.initTx(options || {}, async () => {
         try {
           const result = await originalFn.apply(this, args);

@@ -14,10 +14,9 @@ export class WorkspaceRequest {
     request: WorkspaceRequest,
     userId: string,
   ): Prisma.WorkspaceCreateInput {
-    const { name, image } = request;
+    const { name } = request;
     return {
       name,
-      image: image ? { create: { url: image } } : undefined,
       user: { connect: { id: userId } },
     };
   }
