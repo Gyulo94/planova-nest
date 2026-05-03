@@ -13,9 +13,10 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { WorkspaceModule } from './workspace/workspace.module';
 import { ImageModule } from './image/image.module';
+import { ProjectModule } from './project/project.module';
 
 @Module({
-  imports: [GlobalModule, AuthModule, UserModule, EmailModule, WorkspaceModule, ImageModule],
+  imports: [GlobalModule, AuthModule, UserModule, EmailModule, WorkspaceModule, ImageModule, ProjectModule],
   providers: [
     {
       provide: APP_GUARD,

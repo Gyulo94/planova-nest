@@ -5,4 +5,6 @@ export enum ResponseMessage {
   RESET_PASSWORD_SUCCESS = '비밀번호 재설정이 완료되었습니다. 다시 로그인해주세요.',
 
   CREATE_WORKSPACE_SUCCESS = '워크스페이스가 성공적으로 생성되었습니다.',
+
+  CREATE_PROJECT_SUCCESS = '프로젝트가 성공적으로 생성되었습니다.',
 }
