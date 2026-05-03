@@ -6,10 +6,14 @@ import type { Payload } from 'src/global/types/payload';
 import { WorkspaceResponse } from '../response/workspace.response';
 import { Message } from 'src/global/decorators/message.decorator';
 import { ResponseMessage } from 'src/global/enums/response-message.enum';
+import { WorkspaceMemberService } from 'src/workspace-member/service/workspace-member.service';
 
 @Controller('workspace')
 export class WorkspaceController {
-  constructor(private readonly workspaceService: WorkspaceService) {}
+  constructor(
+    private readonly workspaceService: WorkspaceService,
+    private readonly workspaceMemberService: WorkspaceMemberService,
+  ) {}
 
   @Message(ResponseMessage.CREATE_WORKSPACE_SUCCESS)
   @Post('create')
@@ -27,7 +31,7 @@ export class WorkspaceController {
     @CurrentUser() user: Payload,
   ): Promise<WorkspaceResponse[]> {
     const response: WorkspaceResponse[] =
-      await this.workspaceService.findAllByUserId(user.id);
+      await this.workspaceMemberService.findWorkspaces(user.id);
     return response;
   }
 }
