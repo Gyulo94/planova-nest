@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { WorkspaceService } from '../service/workspace.service';
 import { WorkspaceRequest } from '../request/workspace.request';
 import { CurrentUser } from 'src/global/decorators/current-user.decorator';
@@ -32,6 +32,16 @@ export class WorkspaceController {
   ): Promise<WorkspaceResponse[]> {
     const response: WorkspaceResponse[] =
       await this.workspaceMemberService.findWorkspaces(user.id);
+    return response;
+  }
+
+  @Get(':workspaceId')
+  async findWorkspaceById(
+    @CurrentUser() user: Payload,
+    @Param('workspaceId') workspaceId: string,
+  ): Promise<WorkspaceResponse> {
+    const response: WorkspaceResponse =
+      await this.workspaceService.findWorkspaceById(workspaceId, user.id);
     return response;
   }
 }

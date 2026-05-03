@@ -16,14 +16,10 @@ export class WorkspaceRepository {
     });
   }
 
-  async findAllByUserId(id: string): Promise<WorkspaceWithImage[]> {
-    return this.prisma.workspace.findMany({
-      where: {
-        ownerId: id,
-      },
-      include: {
-        image: true,
-      },
+  async findWorkspaceById(id: string): Promise<WorkspaceWithImage | null> {
+    return this.prisma.workspace.findUnique({
+      where: { id },
+      include: { image: true },
     });
   }
 }

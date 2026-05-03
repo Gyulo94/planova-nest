@@ -53,7 +53,7 @@ export class WorkspaceMemberRepository {
       },
       include: {
         user: true,
-        workspace: true,
+        workspace: { include: { image: true } },
       },
     });
     return members;

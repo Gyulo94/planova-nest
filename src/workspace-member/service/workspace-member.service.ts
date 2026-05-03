@@ -28,7 +28,10 @@ export class WorkspaceMemberService {
     return response;
   }
 
-  async findWorkspaceMembers(workspaceId: string, userId: string) {
+  async findWorkspaceMembers(
+    workspaceId: string,
+    userId: string,
+  ): Promise<WorkspaceMemberResponse[]> {
     await this.validateWorkspaceMember(workspaceId, userId);
     const workspaceMembers =
       await this.workspaceMemberRepository.findWorkspaceMembers(
@@ -41,7 +44,10 @@ export class WorkspaceMemberService {
     return response;
   }
 
-  async validateWorkspaceMember(workspaceId: string, userId: string) {
+  async validateWorkspaceMember(
+    workspaceId: string,
+    userId: string,
+  ): Promise<boolean> {
     const isMember: boolean =
       await this.workspaceMemberRepository.validateWorkspaceMember(
         workspaceId,

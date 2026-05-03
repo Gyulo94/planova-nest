@@ -9,6 +9,8 @@ import { Transactional } from 'src/global/decorators/transactional.decorator';
 import { ImageResponse } from 'src/image/response/image.response';
 import { WorkspaceMemberService } from 'src/workspace-member/service/workspace-member.service';
 import { generateInviteCode } from 'src/global/utils';
+import { ApiException } from 'src/global/exceptions/api.exception';
+import { ErrorCode } from 'src/global/enums/error-code.enum';
 
 @Injectable()
 export class WorkspaceService {
@@ -46,6 +48,20 @@ export class WorkspaceService {
     );
     const response: WorkspaceResponse =
       WorkspaceResponse.fromModel(newWorkspace);
+    return response;
+  }
+
+  async findWorkspaceById(
+    id: string,
+    userId: string,
+  ): Promise<WorkspaceResponse> {
+    await this.workspaceMemberService.validateWorkspaceMember(id, userId);
+    const workspace: WorkspaceWithImage | null =
+      await this.workspaceRepository.findWorkspaceById(id);
+    if (!workspace) {
+      throw new ApiException(ErrorCode.WORKSPACE_NOT_FOUND);
+    }
+    const response: WorkspaceResponse = WorkspaceResponse.fromModel(workspace);
     return response;
   }
 }
