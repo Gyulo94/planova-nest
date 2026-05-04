@@ -3,9 +3,10 @@ import { ProjectService } from './service/project.service';
 import { ProjectController } from './controller/project.controller';
 import { ProjectRepository } from './repository/project.repository';
 import { ImageModule } from 'src/image/image.module';
+import { ProjectMemberModule } from 'src/project-member/project-member.module';
 
 @Module({
-  imports: [ImageModule],
+  imports: [ImageModule, ProjectMemberModule],
   controllers: [ProjectController],
   providers: [ProjectService, ProjectRepository],
   exports: [ProjectService, ProjectRepository],

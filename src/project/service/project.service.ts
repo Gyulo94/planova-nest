@@ -6,15 +6,20 @@ import { ImageResponse } from 'src/image/response/image.response';
 import { ImageRequest } from 'src/image/request/image.request';
 import { ImageService } from 'src/image/service/image.service';
 import { ProjectResponse } from '../response/project.response';
+import { ProjectMemberService } from 'src/project-member/service/project-member.service';
 
 @Injectable()
 export class ProjectService {
   constructor(
     private readonly projectRepository: ProjectRepository,
+    private readonly projectMemberService: ProjectMemberService,
     private readonly imageService: ImageService,
   ) {}
 
-  async createProject(request: ProjectRequest) {
+  async createProject(
+    request: ProjectRequest,
+    userId: string,
+  ): Promise<ProjectResponse> {
     const newProject: ProjectWithImage = await this.projectRepository.create(
       ProjectRequest.toModel(request),
     );
@@ -29,6 +34,8 @@ export class ProjectService {
       };
       image = await this.imageService.createImages(imageRequest);
     }
+
+    await this.projectMemberService.createProjectMember(newProject.id, userId);
 
     const response: ProjectResponse = ProjectResponse.fromModel(
       newProject,

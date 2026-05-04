@@ -4,6 +4,8 @@ import { Message } from 'src/global/decorators/message.decorator';
 import { ProjectRequest } from '../request/project.request';
 import { ResponseMessage } from 'src/global/enums/response-message.enum';
 import { ProjectResponse } from '../response/project.response';
+import type { Payload } from 'src/global/types';
+import { CurrentUser } from 'src/global/decorators/current-user.decorator';
 
 @Controller('project')
 export class ProjectController {
@@ -13,9 +15,12 @@ export class ProjectController {
   @Post('create')
   async createProject(
     @Body() request: ProjectRequest,
+    @CurrentUser() user: Payload,
   ): Promise<ProjectResponse> {
-    const response: ProjectResponse =
-      await this.projectService.createProject(request);
+    const response: ProjectResponse = await this.projectService.createProject(
+      request,
+      user.id,
+    );
     return response;
   }
 
