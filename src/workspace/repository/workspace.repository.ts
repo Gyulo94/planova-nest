@@ -22,4 +22,22 @@ export class WorkspaceRepository {
       include: { image: true },
     });
   }
+
+  async update(
+    data: Prisma.WorkspaceUpdateInput,
+    id: string,
+  ): Promise<WorkspaceWithImage> {
+    return this.prisma.workspace.update({
+      where: { id },
+      data,
+      include: { image: true },
+    });
+  }
+
+  async delete(workspaceId: string): Promise<boolean> {
+    await this.prisma.workspace.delete({
+      where: { id: workspaceId },
+    });
+    return true;
+  }
 }

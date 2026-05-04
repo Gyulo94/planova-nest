@@ -13,12 +13,12 @@ export class WorkspaceRequest {
   static toModel(
     request: WorkspaceRequest,
     userId: string,
-    inviteCode: string,
+    inviteCode?: string,
   ): Prisma.WorkspaceCreateInput {
     const { name } = request;
     return {
       name,
-      inviteCode,
+      inviteCode: inviteCode ?? undefined,
       user: { connect: { id: userId } },
     };
   }

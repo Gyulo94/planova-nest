@@ -82,7 +82,7 @@ export class ImageService {
       }
       await this.imageRepository.saveAll(imagesObj);
       this.LOGGER.log(`4. 이미지들 저장 완료`);
-      const images = await this.imageRepository.findAllByModelId(id, entity);
+      const images = await this.imageRepository.findAllByModelId([id], entity);
       this.LOGGER.log(`5. 이미지들 조회 완료`);
       const response = images.map((image) => ImageResponse.fromModel(image));
 
@@ -121,7 +121,7 @@ export class ImageService {
 
       if (existingImages && existingImages.length > 0) {
         this.LOGGER.log(`3. 기존 이미지들 삭제 중`);
-        await this.imageRepository.deleteMany(id, entity);
+        await this.imageRepository.deleteMany([id], entity);
         this.LOGGER.log(`4. 기존 이미지들 삭제 완료`);
       }
 
@@ -140,7 +140,7 @@ export class ImageService {
       this.LOGGER.log(`6. 수정된 이미지들 저장 완료`);
 
       this.LOGGER.log(`7. 이미지들 조회 중`);
-      const images = await this.imageRepository.findAllByModelId(id, entity);
+      const images = await this.imageRepository.findAllByModelId([id], entity);
       const response = images.map((image) => ImageResponse.fromModel(image));
       this.LOGGER.log(`8. 이미지들 변환 완료`);
       this.LOGGER.log(
@@ -153,14 +153,14 @@ export class ImageService {
   }
 
   @Transactional()
-  async deleteImages(entityId: string, entity: string): Promise<boolean> {
+  async deleteImages(entityIds: string[], entity: string): Promise<boolean> {
     this.LOGGER.log(
       `--------------------이미지 삭제 서비스 실행--------------------`,
     );
     const requestObj = {
-      id: entityId,
+      ids: entityIds,
       serviceName: this.SERVICE_NAME,
-      entity: 'transaction',
+      entity,
     };
 
     try {
@@ -168,13 +168,11 @@ export class ImageService {
       const response = await firstValueFrom(
         this.httpService.delete<boolean>(
           `${FILE_URL}/images/${this.SERVICE_NAME}/delete`,
-          {
-            data: requestObj,
-          },
+          { data: requestObj },
         ),
       );
 
-      await this.imageRepository.deleteMany(entityId, entity);
+      await this.imageRepository.deleteMany(entityIds, entity);
 
       this.LOGGER.log(`2. 이미지 삭제 요청 완료`);
       this.LOGGER.log(

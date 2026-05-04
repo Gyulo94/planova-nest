@@ -151,4 +151,10 @@ export class WorkspaceMemberService {
     }
     await this.workspaceMemberRepository.delete(workspaceId, memberId);
   }
+
+  findMyOwnWorkspaces(userId: string) {
+    const myWorkspaces =
+      this.workspaceMemberRepository.findMyOwnWorkspaces(userId);
+    return myWorkspaces;
+  }
 }

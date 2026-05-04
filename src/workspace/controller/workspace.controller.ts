@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { WorkspaceService } from '../service/workspace.service';
 import { WorkspaceRequest } from '../request/workspace.request';
 import { CurrentUser } from 'src/global/decorators/current-user.decorator';
@@ -37,11 +45,39 @@ export class WorkspaceController {
 
   @Get(':workspaceId')
   async findWorkspaceById(
-    @CurrentUser() user: Payload,
     @Param('workspaceId') workspaceId: string,
   ): Promise<WorkspaceResponse> {
     const response: WorkspaceResponse =
-      await this.workspaceService.findWorkspaceById(workspaceId, user.id);
+      await this.workspaceService.findWorkspaceById(workspaceId);
+    return response;
+  }
+
+  @Message(ResponseMessage.UPDATE_WORKSPACE_SUCCESS)
+  @Put(':workspaceId/update')
+  async updateWorkspace(
+    @CurrentUser() user: Payload,
+    @Param('workspaceId') workspaceId: string,
+    @Body() request: WorkspaceRequest,
+  ): Promise<WorkspaceResponse> {
+    const response: WorkspaceResponse =
+      await this.workspaceService.updateWorkspace(
+        workspaceId,
+        request,
+        user.id,
+      );
+    return response;
+  }
+
+  @Message(ResponseMessage.DELETE_WORKSPACE_SUCCESS)
+  @Delete(':workspaceId/delete')
+  async deleteWorkspace(
+    @CurrentUser() user: Payload,
+    @Param('workspaceId') workspaceId: string,
+  ): Promise<void> {
+    const response = await this.workspaceService.deleteWorkspace(
+      workspaceId,
+      user.id,
+    );
     return response;
   }
 }

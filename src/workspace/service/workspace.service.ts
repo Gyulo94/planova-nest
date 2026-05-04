@@ -51,10 +51,7 @@ export class WorkspaceService {
     return response;
   }
 
-  async findWorkspaceById(
-    id: string,
-    userId: string,
-  ): Promise<WorkspaceResponse> {
+  async findWorkspaceById(id: string): Promise<WorkspaceResponse> {
     const workspace: WorkspaceWithImage | null =
       await this.workspaceRepository.findWorkspaceById(id);
     if (!workspace) {
@@ -62,5 +59,62 @@ export class WorkspaceService {
     }
     const response: WorkspaceResponse = WorkspaceResponse.fromModel(workspace);
     return response;
+  }
+
+  async updateWorkspace(
+    workspaceId: string,
+    request: WorkspaceRequest,
+    userId: string,
+  ): Promise<WorkspaceResponse> {
+    await this.workspaceMemberService.validateWorkspaceAdminOrOwner(
+      workspaceId,
+      userId,
+    );
+    const workspace: WorkspaceWithImage | null =
+      await this.workspaceRepository.findWorkspaceById(workspaceId);
+    if (!workspace) {
+      throw new ApiException(ErrorCode.WORKSPACE_NOT_FOUND);
+    }
+    let image: ImageResponse[] = [];
+    if (request.image !== workspace.image?.url) {
+      const imageRequest: ImageRequest = {
+        id: workspaceId,
+        existingImages: workspace.image ? [workspace.image.id] : [],
+        urls: request.image ? [request.image] : [],
+        entity: 'workspace',
+      };
+      image = await this.imageService.updateImages(imageRequest);
+    }
+
+    const newWorkspace = await this.workspaceRepository.update(
+      WorkspaceRequest.toModel(request, userId),
+      workspaceId,
+    );
+    const response: WorkspaceResponse =
+      WorkspaceResponse.fromModel(newWorkspace);
+    return response;
+  }
+
+  async deleteWorkspace(workspaceId: string, userId: string): Promise<void> {
+    await this.workspaceMemberService.validateWorkspaceAdminOrOwner(
+      workspaceId,
+      userId,
+    );
+    const workspace: WorkspaceWithImage | null =
+      await this.workspaceRepository.findWorkspaceById(workspaceId);
+    if (!workspace) {
+      throw new ApiException(ErrorCode.WORKSPACE_NOT_FOUND);
+    }
+    const myWorkspaces =
+      await this.workspaceMemberService.findMyOwnWorkspaces(userId);
+    if (myWorkspaces.length === 1) {
+      throw new ApiException(ErrorCode.CAN_NOT_DELETE_ONLY_MY_OWN_WORKSPACE);
+    }
+
+    const isDeleted = await this.workspaceRepository.delete(workspaceId);
+
+    if (isDeleted && workspace.image) {
+      await this.imageService.deleteImages([workspaceId], 'workspace');
+    }
   }
 }

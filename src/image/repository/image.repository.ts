@@ -24,21 +24,21 @@ export class ImageRepository {
     return result;
   }
 
-  findAllByModelId(entityId: string, entity: string): Promise<Image[]> {
+  findAllByModelId(entityIds: string[], entity: string): Promise<Image[]> {
     return this.prisma.image.findMany({
       where: {
-        [entity]: { id: entityId },
+        [entity]: { id: { in: entityIds } },
       },
     });
   }
 
   async deleteMany(
-    entityId: string,
+    entityIds: string[],
     entity: string,
   ): Promise<Prisma.BatchPayload> {
     const result = await this.prisma.image.deleteMany({
       where: {
-        [entity]: { id: entityId },
+        [entity]: { id: { in: entityIds } },
       },
     });
     return result;

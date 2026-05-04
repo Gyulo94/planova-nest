@@ -101,4 +101,16 @@ export class WorkspaceMemberRepository {
       },
     });
   }
+
+  findMyOwnWorkspaces(userId: string) {
+    return this.prisma.workspaceMember.findMany({
+      where: {
+        userId,
+        role: 'OWNER',
+      },
+      include: {
+        workspace: { include: { image: true } },
+      },
+    });
+  }
 }

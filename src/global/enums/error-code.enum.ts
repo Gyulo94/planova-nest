@@ -22,6 +22,15 @@ export enum ErrorCode {
   ALREADY_EXIST_SOCIAL_USER = 'AUTH_006',
   REFRESH_TOKEN_NOT_FOUND = 'AUTH_007',
   INVALID_REFRESH_TOKEN = 'AUTH_008',
+
+  // 워크스페이스 관련 에러
+  WORKSPACE_NOT_FOUND = 'WORKSPACE_001',
+  CAN_NOT_DELETE_ONLY_MY_OWN_WORKSPACE = 'WORKSPACE_002',
+
+  // 워크스페이스 멤버관련 에러
+  WORKSPACE_MEMBER_NOT_FOUND = 'WORKSPACE_MEMBER_001',
+  WORKSPACE_MEMBER_ALREADY_EXISTS = 'WORKSPACE_MEMBER_002',
+  INVALID_INVITE_CODE = 'WORKSPACE_MEMBER_003',
 }
 
 export const ErrorCodeMap: Record<
@@ -96,5 +105,29 @@ export const ErrorCodeMap: Record<
   [ErrorCode.INVALID_REFRESH_TOKEN]: {
     status: HttpStatus.UNAUTHORIZED,
     message: '유효하지 않거나 만료된 리프레시 토큰입니다.',
+  },
+
+  // 워크스페이스 관련 에러
+  [ErrorCode.WORKSPACE_NOT_FOUND]: {
+    status: HttpStatus.BAD_REQUEST,
+    message: '워크스페이스를 찾을 수 없습니다.',
+  },
+  [ErrorCode.CAN_NOT_DELETE_ONLY_MY_OWN_WORKSPACE]: {
+    status: HttpStatus.BAD_REQUEST,
+    message: '소유자인 유일한 워크스페이스는 삭제할 수 없습니다.',
+  },
+
+  // 워크스페이스 멤버관련 에러
+  [ErrorCode.WORKSPACE_MEMBER_NOT_FOUND]: {
+    status: HttpStatus.BAD_REQUEST,
+    message: '워크스페이스 멤버를 찾을 수 없습니다.',
+  },
+  [ErrorCode.WORKSPACE_MEMBER_ALREADY_EXISTS]: {
+    status: HttpStatus.BAD_REQUEST,
+    message: '이미 참여한 워크스페이스입니다.',
+  },
+  [ErrorCode.INVALID_INVITE_CODE]: {
+    status: HttpStatus.BAD_REQUEST,
+    message: '유효하지 않은 초대 코드입니다.',
   },
 };
