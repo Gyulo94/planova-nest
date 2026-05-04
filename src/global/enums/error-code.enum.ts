@@ -31,6 +31,12 @@ export enum ErrorCode {
   WORKSPACE_MEMBER_NOT_FOUND = 'WORKSPACE_MEMBER_001',
   WORKSPACE_MEMBER_ALREADY_EXISTS = 'WORKSPACE_MEMBER_002',
   INVALID_INVITE_CODE = 'WORKSPACE_MEMBER_003',
+
+  // 프로젝트 관련 에러
+  PROJECT_NOT_FOUND = 'PROJECT_001',
+
+  // 프로젝트 멤버 관련 에러
+  PROJECT_MEMBER_NOT_FOUND = 'PROJECT_MEMBER_001',
 }
 
 export const ErrorCodeMap: Record<
@@ -129,5 +135,17 @@ export const ErrorCodeMap: Record<
   [ErrorCode.INVALID_INVITE_CODE]: {
     status: HttpStatus.BAD_REQUEST,
     message: '유효하지 않은 초대 코드입니다.',
+  },
+
+  // 프로젝트 관련 에러
+  [ErrorCode.PROJECT_NOT_FOUND]: {
+    status: HttpStatus.BAD_REQUEST,
+    message: '프로젝트를 찾을 수 없습니다.',
+  },
+
+  // 프로젝트 멤버 관련 에러
+  [ErrorCode.PROJECT_MEMBER_NOT_FOUND]: {
+    status: HttpStatus.BAD_REQUEST,
+    message: '프로젝트 멤버를 찾을 수 없습니다.',
   },
 };

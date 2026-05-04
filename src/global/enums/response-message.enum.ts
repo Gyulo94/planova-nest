@@ -7,8 +7,12 @@ export enum ResponseMessage {
   CREATE_WORKSPACE_SUCCESS = '워크스페이스가 성공적으로 생성되었습니다.',
   UPDATE_WORKSPACE_SUCCESS = '워크스페이스가 성공적으로 업데이트되었습니다.',
   DELETE_WORKSPACE_SUCCESS = '워크스페이스가 성공적으로 삭제되었습니다.',
+  RESET_INVITE_CODE_SUCCESS = '초대 코드가 성공적으로 재설정되었습니다.',
 
   CREATE_PROJECT_SUCCESS = '프로젝트가 성공적으로 생성되었습니다.',
+  INVITE_PROJECT_MEMBER_SUCCESS = '프로젝트 멤버 초대가 완료되었습니다.',
+  UPDATE_PROJECT_MEMBER_SUCCESS = '프로젝트 멤버가 성공적으로 업데이트되었습니다.',
+  DELETE_PROJECT_MEMBER_SUCCESS = '프로젝트 멤버가 성공적으로 추방되었습니다.',
 
   JOIN_WORKSPACE_SUCCESS = '워크스페이스에 성공적으로 참여했습니다.',
   UPDATE_WORKSPACE_MEMBER_SUCCESS = '워크스페이스 멤버가 성공적으로 업데이트되었습니다.',

@@ -26,4 +26,11 @@ export class ProjectRepository {
       },
     });
   }
+
+  async findProjectById(id: string): Promise<ProjectWithImage | null> {
+    return this.prisma.project.findUnique({
+      where: { id },
+      include: { image: true },
+    });
+  }
 }
