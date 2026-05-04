@@ -40,4 +40,14 @@ export class WorkspaceRepository {
     });
     return true;
   }
+
+  async resetInviteCode(
+    workspaceId: string,
+    newInviteCode: string,
+  ): Promise<void> {
+    await this.prisma.workspace.update({
+      where: { id: workspaceId },
+      data: { inviteCode: newInviteCode },
+    });
+  }
 }

@@ -117,4 +117,18 @@ export class WorkspaceService {
       await this.imageService.deleteImages([workspaceId], 'workspace');
     }
   }
+
+  async resetInviteCode(workspaceId: string, userId: string): Promise<void> {
+    await this.workspaceMemberService.validateWorkspaceAdminOrOwner(
+      workspaceId,
+      userId,
+    );
+    const workspace: WorkspaceWithImage | null =
+      await this.workspaceRepository.findWorkspaceById(workspaceId);
+    if (!workspace) {
+      throw new ApiException(ErrorCode.WORKSPACE_NOT_FOUND);
+    }
+    const newInviteCode = generateInviteCode(8);
+    await this.workspaceRepository.resetInviteCode(workspaceId, newInviteCode);
+  }
 }

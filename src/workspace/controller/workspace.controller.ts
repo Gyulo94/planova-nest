@@ -80,4 +80,13 @@ export class WorkspaceController {
     );
     return response;
   }
+
+  @Message(ResponseMessage.RESET_INVITE_CODE_SUCCESS)
+  @Put(':workspaceId/invite-code/reset')
+  async resetInviteCode(
+    @CurrentUser() user: Payload,
+    @Param('workspaceId') workspaceId: string,
+  ): Promise<void> {
+    await this.workspaceService.resetInviteCode(workspaceId, user.id);
+  }
 }
