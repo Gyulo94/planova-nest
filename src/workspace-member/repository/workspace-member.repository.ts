@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { WorkspaceMember } from '@prisma/client';
+import { Prisma, Role, WorkspaceMember } from '@prisma/client';
 import { PrismaService } from 'src/global/prisma/prisma.service';
 import { WorkspaceWithImage } from 'src/global/types';
 import { WorkspaceMemberWithUserAndWorkspace } from 'src/global/types/workspace-member';
@@ -44,12 +44,10 @@ export class WorkspaceMemberRepository {
 
   async findWorkspaceMembers(
     workspaceId: string,
-    userId: string,
   ): Promise<WorkspaceMemberWithUserAndWorkspace[]> {
     const members = await this.prisma.workspaceMember.findMany({
       where: {
         workspaceId,
-        userId,
       },
       include: {
         user: true,
@@ -57,5 +55,50 @@ export class WorkspaceMemberRepository {
       },
     });
     return members;
+  }
+
+  add(
+    data: Prisma.WorkspaceMemberCreateInput,
+  ): Promise<WorkspaceMemberWithUserAndWorkspace> {
+    return this.prisma.workspaceMember.create({
+      data,
+      include: {
+        user: true,
+        workspace: { include: { image: true } },
+      },
+    });
+  }
+
+  update(
+    workspaceId: string,
+    memberId: string,
+    newRole: Role,
+  ): Promise<WorkspaceMemberWithUserAndWorkspace> {
+    return this.prisma.workspaceMember.update({
+      where: {
+        workspaceId_userId: {
+          workspaceId,
+          userId: memberId,
+        },
+      },
+      data: {
+        role: newRole,
+      },
+      include: {
+        user: true,
+        workspace: { include: { image: true } },
+      },
+    });
+  }
+
+  async delete(workspaceId: string, memberId: string): Promise<void> {
+    await this.prisma.workspaceMember.delete({
+      where: {
+        workspaceId_userId: {
+          workspaceId,
+          userId: memberId,
+        },
+      },
+    });
   }
 }

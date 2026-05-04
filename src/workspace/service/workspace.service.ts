@@ -55,7 +55,6 @@ export class WorkspaceService {
     id: string,
     userId: string,
   ): Promise<WorkspaceResponse> {
-    await this.workspaceMemberService.validateWorkspaceMember(id, userId);
     const workspace: WorkspaceWithImage | null =
       await this.workspaceRepository.findWorkspaceById(id);
     if (!workspace) {
