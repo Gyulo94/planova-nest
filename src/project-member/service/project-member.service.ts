@@ -53,7 +53,7 @@ export class ProjectMemberService {
     userIds: string[],
     userId: string,
   ): Promise<ProjectMemberResponse[]> {
-    await this.validateProjectAdminOrOwner(projectId, userId);
+    await this.validateProjectOwner(projectId, userId);
     const newProjectMembers = await Promise.all(
       userIds.map((userId) =>
         this.projectMemberRepository.add(projectId, userId),
@@ -69,7 +69,7 @@ export class ProjectMemberService {
     projectId: string,
     userId: string,
   ): Promise<WorkspaceMemberResponse[]> {
-    await this.validateProjectAdminOrOwner(projectId, userId);
+    await this.validateProjectOwner(projectId, userId);
     const workspaceMembers =
       await this.projectMemberRepository.findWorkspaceMembersNotInProject(
         projectId,
@@ -95,7 +95,7 @@ export class ProjectMemberService {
     return isMember;
   }
 
-  async validateProjectAdminOrOwner(
+  async validateProjectOwner(
     projectId: string,
     userId: string,
   ): Promise<boolean> {
@@ -105,7 +105,7 @@ export class ProjectMemberService {
     if (!member) {
       throw new ApiException(ErrorCode.PROJECT_MEMBER_NOT_FOUND);
     }
-    if (member.role !== 'ADMIN' && member.role !== 'OWNER') {
+    if (member.role !== 'OWNER') {
       throw new ApiException(ErrorCode.INSUFFICIENT_ROLE);
     }
     return true;
@@ -117,7 +117,7 @@ export class ProjectMemberService {
     userId: string,
   ) {
     await this.validateProjectMember(projectId, memberId);
-    await this.validateProjectAdminOrOwner(projectId, userId);
+    await this.validateProjectOwner(projectId, userId);
 
     const projectMembers =
       await this.projectMemberRepository.findProjectMembers(projectId);
@@ -144,7 +144,7 @@ export class ProjectMemberService {
     userId: string,
   ) {
     await this.validateProjectMember(projectId, memberId);
-    await this.validateProjectAdminOrOwner(projectId, userId);
+    await this.validateProjectOwner(projectId, userId);
 
     const projectMembers =
       await this.projectMemberRepository.findProjectMembers(projectId);

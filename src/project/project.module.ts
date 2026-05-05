@@ -5,9 +5,15 @@ import { ProjectRepository } from './repository/project.repository';
 import { ImageModule } from 'src/image/image.module';
 import { ProjectMemberModule } from 'src/project-member/project-member.module';
 import { WorkspaceMemberModule } from 'src/workspace-member/workspace-member.module';
+import { LabelModule } from 'src/label/label.module';
 
 @Module({
-  imports: [ImageModule, ProjectMemberModule, WorkspaceMemberModule],
+  imports: [
+    ImageModule,
+    ProjectMemberModule,
+    WorkspaceMemberModule,
+    LabelModule,
+  ],
   controllers: [ProjectController],
   providers: [ProjectService, ProjectRepository],
   exports: [ProjectService, ProjectRepository],

@@ -33,4 +33,22 @@ export class ProjectRepository {
       include: { image: true },
     });
   }
+
+  update(
+    projectId: string,
+    data: Prisma.ProjectUpdateInput,
+  ): Promise<ProjectWithImage> {
+    return this.prisma.project.update({
+      where: { id: projectId },
+      data,
+      include: { image: true },
+    });
+  }
+
+  async delete(projectId: string) {
+    await this.prisma.project.delete({
+      where: { id: projectId },
+    });
+    return true;
+  }
 }

@@ -17,6 +17,7 @@ import { ProjectModule } from './project/project.module';
 import { TaskModule } from './task/task.module';
 import { ProjectMemberModule } from './project-member/project-member.module';
 import { WorkspaceMemberModule } from './workspace-member/workspace-member.module';
+import { LabelModule } from './label/label.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { WorkspaceMemberModule } from './workspace-member/workspace-member.modul
     TaskModule,
     WorkspaceMemberModule,
     ProjectMemberModule,
+    LabelModule,
   ],
   providers: [
     {

@@ -51,9 +51,9 @@ export class WorkspaceService {
     return response;
   }
 
-  async findWorkspaceById(id: string): Promise<WorkspaceResponse> {
+  async findWorkspaceById(workspaceId: string): Promise<WorkspaceResponse> {
     const workspace: WorkspaceWithImage | null =
-      await this.workspaceRepository.findWorkspaceById(id);
+      await this.workspaceRepository.findWorkspaceById(workspaceId);
     if (!workspace) {
       throw new ApiException(ErrorCode.WORKSPACE_NOT_FOUND);
     }

@@ -24,3 +24,11 @@ export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 export const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 export const KAKAO_CLIENT_ID = process.env.KAKAO_CLIENT_ID;
 export const KAKAO_CLIENT_SECRET = process.env.KAKAO_CLIENT_SECRET;
+
+export const DEFAULT_TASK_LABELS = [
+  { name: '기획', bgColor: '#e0f2fe', textColor: '#0c4a6e' },
+  { name: '디자인', bgColor: '#fce7f3', textColor: '#9d174d' },
+  { name: '개발', bgColor: '#dbeafe', textColor: '#1e3a8a' },
+  { name: '테스트', bgColor: '#dcfce7', textColor: '#15803d' },
+  { name: '버그', bgColor: '#fee2e2', textColor: '#7f1d1d' },
+];

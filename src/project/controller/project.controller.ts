@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { ProjectService } from '../service/project.service';
 import { Message } from 'src/global/decorators/message.decorator';
 import { ProjectRequest } from '../request/project.request';
@@ -38,6 +46,11 @@ export class ProjectController {
     return response;
   }
 
+  @Get(':projectId/labels')
+  async findLabelsByProjectId(@Param('projectId') projectId: string) {
+    return this.projectService.findLabelsByProjectId(projectId);
+  }
+
   @Get(':projectId')
   async findProjectById(
     @Param('projectId') projectId: string,
@@ -45,5 +58,29 @@ export class ProjectController {
     const response: ProjectResponse =
       await this.projectService.findProjectById(projectId);
     return response;
+  }
+
+  @Message(ResponseMessage.UPDATE_PROJECT_SUCCESS)
+  @Put(':projectId/update')
+  async updateProject(
+    @Param('projectId') projectId: string,
+    @Body() request: ProjectRequest,
+    @CurrentUser() user: Payload,
+  ): Promise<ProjectResponse> {
+    const response: ProjectResponse = await this.projectService.updateProject(
+      projectId,
+      request,
+      user.id,
+    );
+    return response;
+  }
+
+  @Message(ResponseMessage.DELETE_PROJECT_SUCCESS)
+  @Delete(':projectId/delete')
+  async deleteProject(
+    @Param('projectId') projectId: string,
+    @CurrentUser() user: Payload,
+  ): Promise<void> {
+    await this.projectService.deleteProject(projectId, user.id);
   }
 }
