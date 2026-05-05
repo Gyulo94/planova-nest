@@ -19,4 +19,8 @@ export const RedisKey = {
   user: {
     session: (userId: string) => `${PREFIX}:session:${userId}`,
   },
+  task: {
+    projectTasks: (projectId: string) =>
+      `${PREFIX}:task:project:${projectId}`,
+  },
 };

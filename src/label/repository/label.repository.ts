@@ -30,4 +30,22 @@ export class LabelRepository {
       },
     });
   }
+
+  async findByProjectIdAndName(projectId: string, name: string) {
+    return this.prisma.label.findFirst({
+      where: {
+        projectId,
+        name: {
+          equals: name,
+          mode: 'insensitive',
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        bgColor: true,
+        textColor: true,
+      },
+    });
+  }
 }

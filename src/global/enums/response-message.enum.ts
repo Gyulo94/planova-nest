@@ -13,6 +13,10 @@ export enum ResponseMessage {
   UPDATE_PROJECT_SUCCESS = '프로젝트가 성공적으로 업데이트되었습니다.',
   DELETE_PROJECT_SUCCESS = '프로젝트가 성공적으로 삭제되었습니다.',
 
+  CREATE_LABEL_SUCCESS = '라벨이 성공적으로 생성되었습니다.',
+
+  CREATE_TASK_SUCCESS = '작업이 성공적으로 생성되었습니다.',
+
   INVITE_PROJECT_MEMBER_SUCCESS = '프로젝트 멤버 초대가 완료되었습니다.',
   UPDATE_PROJECT_MEMBER_SUCCESS = '프로젝트 멤버가 성공적으로 업데이트되었습니다.',
   DELETE_PROJECT_MEMBER_SUCCESS = '프로젝트 멤버가 성공적으로 추방되었습니다.',
