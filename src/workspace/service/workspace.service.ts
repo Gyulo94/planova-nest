@@ -11,6 +11,7 @@ import { WorkspaceMemberService } from 'src/workspace-member/service/workspace-m
 import { generateInviteCode } from 'src/global/utils';
 import { ApiException } from 'src/global/exceptions/api.exception';
 import { ErrorCode } from 'src/global/enums/error-code.enum';
+import { ActivityService } from 'src/activity/service/activity.service';
 
 @Injectable()
 export class WorkspaceService {
@@ -18,6 +19,7 @@ export class WorkspaceService {
     private readonly workspaceRepository: WorkspaceRepository,
     private readonly workspaceMemberService: WorkspaceMemberService,
     private readonly imageService: ImageService,
+    private readonly activityService: ActivityService,
   ) {}
 
   @Transactional()
@@ -46,6 +48,14 @@ export class WorkspaceService {
       newWorkspace.id,
       userId,
     );
+
+    await this.activityService.createActivity({
+      action: 'WORKSPACE_CREATE',
+      description: `워크스페이스 '${newWorkspace.name}'을(를) 생성했습니다.`,
+      workspaceId: newWorkspace.id,
+      userId,
+    });
+
     const response: WorkspaceResponse =
       WorkspaceResponse.fromModel(newWorkspace);
     return response;
@@ -77,19 +87,31 @@ export class WorkspaceService {
     }
     let image: ImageResponse[] = [];
     if (request.image !== workspace.image?.url) {
-      const imageRequest: ImageRequest = {
-        id: workspaceId,
-        existingImages: workspace.image ? [workspace.image.id] : [],
-        urls: request.image ? [request.image] : [],
-        entity: 'workspace',
-      };
-      image = await this.imageService.updateImages(imageRequest);
+      if (!request.image && workspace.image) {
+        await this.imageService.deleteImages([workspaceId], 'workspace');
+      } else {
+        const imageRequest: ImageRequest = {
+          id: workspaceId,
+          existingImages: [],
+          urls: request.image ? [request.image] : [],
+          entity: 'workspace',
+        };
+        image = await this.imageService.updateImages(imageRequest);
+      }
     }
 
     const newWorkspace = await this.workspaceRepository.update(
       WorkspaceRequest.toModel(request, userId),
       workspaceId,
     );
+
+    await this.activityService.createActivity({
+      action: 'WORKSPACE_UPDATE',
+      description: `워크스페이스 정보를 수정했습니다.`,
+      workspaceId,
+      userId,
+    });
+
     const response: WorkspaceResponse =
       WorkspaceResponse.fromModel(newWorkspace);
     return response;
@@ -113,8 +135,16 @@ export class WorkspaceService {
 
     const isDeleted = await this.workspaceRepository.delete(workspaceId);
 
-    if (isDeleted && workspace.image) {
-      await this.imageService.deleteImages([workspaceId], 'workspace');
+    if (isDeleted) {
+      await this.activityService.createActivity({
+        action: 'WORKSPACE_DELETE',
+        description: `워크스페이스 '${workspace.name}'을(를) 삭제했습니다.`,
+        userId,
+      });
+
+      if (workspace.image) {
+        await this.imageService.deleteImages([workspaceId], 'workspace');
+      }
     }
   }
 
@@ -130,5 +160,9 @@ export class WorkspaceService {
     }
     const newInviteCode = generateInviteCode(8);
     await this.workspaceRepository.resetInviteCode(workspaceId, newInviteCode);
+  }
+
+  async findWorkspaceStats(workspaceId: string) {
+    return this.workspaceRepository.getWorkspaceStats(workspaceId);
   }
 }

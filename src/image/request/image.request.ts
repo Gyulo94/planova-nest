@@ -8,7 +8,7 @@ export class ImageRequest {
 
   static toModel(request: ImageRequest): Prisma.ImageCreateManyInput[] {
     const { id, urls, entity } = request;
-    const entityIdKey = `${entity}Id` as 'workspaceId' | 'projectId';
+    const entityIdKey = `${entity}Id` as 'workspaceId' | 'projectId' | 'taskId';
 
     return urls.map((url) => ({
       url,

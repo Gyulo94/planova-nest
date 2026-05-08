@@ -3,8 +3,7 @@ import {
   IsString,
   IsOptional,
   IsEnum,
-  IsDateString,
-  IsUUID,
+  IsDateString
 } from 'class-validator';
 
 export class TaskRequest {
@@ -12,7 +11,7 @@ export class TaskRequest {
   title: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   labelId?: string;
 
   @IsOptional()
@@ -33,11 +32,19 @@ export class TaskRequest {
   @IsDateString()
   dueDate?: string;
 
-  @IsUUID()
+  @IsString()
   assigneeId: string;
 
-  @IsUUID()
+  @IsString()
   projectId: string;
+
+  @IsOptional()
+  @IsString()
+  epicId?: string;
+
+  @IsOptional()
+  @IsString()
+  milestoneId?: string;
 
   static toModel(
     request: TaskRequest,
@@ -51,6 +58,8 @@ export class TaskRequest {
       startDate: request.startDate ? new Date(request.startDate) : undefined,
       dueDate: request.dueDate ? new Date(request.dueDate) : undefined,
       project: { connect: { id: request.projectId } },
+      epic: request.epicId ? { connect: { id: request.epicId } } : undefined,
+      milestone: request.milestoneId ? { connect: { id: request.milestoneId } } : undefined,
     };
   }
 }

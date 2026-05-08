@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProjectRequest } from '../request/project.request';
 import { ProjectRepository } from '../repository/project.repository';
 import { ProjectWithImage } from 'src/global/types';
@@ -11,6 +12,7 @@ import { WorkspaceMemberService } from 'src/workspace-member/service/workspace-m
 import { ApiException } from 'src/global/exceptions/api.exception';
 import { ErrorCode } from 'src/global/enums/error-code.enum';
 import { LabelService } from 'src/label/service/label.service';
+import { ActivityService } from 'src/activity/service/activity.service';
 
 @Injectable()
 export class ProjectService {
@@ -20,6 +22,8 @@ export class ProjectService {
     private readonly workspaceMemberService: WorkspaceMemberService,
     private readonly imageService: ImageService,
     private readonly labelService: LabelService,
+    private readonly activityService: ActivityService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async createProject(
@@ -49,7 +53,21 @@ export class ProjectService {
 
     await this.projectMemberService.createProjectMember(newProject.id, userId);
 
+    await this.activityService.createActivity({
+      action: 'PROJECT_CREATE',
+      description: `프로젝트 '${newProject.name}'을(를) 생성했습니다.`,
+      workspaceId: request.workspaceId,
+      projectId: newProject.id,
+      userId,
+    });
+
     const response: ProjectResponse = ProjectResponse.fromModel(newProject);
+
+    this.eventEmitter.emit('project.created', {
+      workspaceId: request.workspaceId,
+      project: response,
+    });
+
     return response;
   }
 
@@ -73,15 +91,44 @@ export class ProjectService {
     userId: string,
   ): Promise<ProjectResponse> {
     await this.projectMemberService.validateProjectOwner(projectId, userId);
+    const project = await this.projectRepository.findProjectById(projectId);
+    if (!project) {
+      throw new ApiException(ErrorCode.PROJECT_NOT_FOUND);
+    }
+
+    if (request.image !== project.image?.url) {
+      if (!request.image && project.image) {
+        await this.imageService.deleteImages([projectId], 'project');
+      } else {
+        const imageRequest: ImageRequest = {
+          id: projectId,
+          existingImages: [],
+          urls: request.image ? [request.image] : [],
+          entity: 'project',
+        };
+        await this.imageService.updateImages(imageRequest);
+      }
+    }
+
     await this.projectRepository.update(
       projectId,
       ProjectRequest.toModel(request),
     );
+
     const updatedProject: ProjectWithImage | null =
       await this.projectRepository.findProjectById(projectId);
     if (!updatedProject) {
       throw new ApiException(ErrorCode.PROJECT_NOT_FOUND);
     }
+
+    await this.activityService.createActivity({
+      action: 'PROJECT_UPDATE',
+      description: `프로젝트 정보를 수정했습니다.`,
+      workspaceId: updatedProject.workspaceId,
+      projectId,
+      userId,
+    });
+
     const response: ProjectResponse = ProjectResponse.fromModel(updatedProject);
     return response;
   }
@@ -94,8 +141,21 @@ export class ProjectService {
     }
     const isDeleted = await this.projectRepository.delete(projectId);
 
-    if (isDeleted && project.image) {
-      await this.imageService.deleteImages([projectId], 'project');
+    if (isDeleted) {
+      await this.activityService.createActivity({
+        action: 'PROJECT_DELETE',
+        description: `프로젝트 '${project.name}'을(를) 삭제했습니다.`,
+        workspaceId: project.workspaceId,
+        userId,
+      });
+
+      if (project.image) {
+        await this.imageService.deleteImages([projectId], 'project');
+      }
     }
+  }
+
+  async getTaskStatusCounts(projectId: string) {
+    return this.projectRepository.getTaskStatusCounts(projectId);
   }
 }

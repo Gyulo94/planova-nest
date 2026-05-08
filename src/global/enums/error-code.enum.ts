@@ -37,6 +37,14 @@ export enum ErrorCode {
 
   // 프로젝트 멤버 관련 에러
   PROJECT_MEMBER_NOT_FOUND = 'PROJECT_MEMBER_001',
+
+  // 하위작업 관련 에러
+  SUBTASK_NOT_FOUND = 'SUBTASK_001',
+
+  // 작업 관련 에러
+  TASK_NOT_FOUND = 'TASK_001',
+  INVALID_TASK_STATUS = 'TASK_002',
+  COMMENT_NOT_FOUND = 'COMMENT_001',
 }
 
 export const ErrorCodeMap: Record<
@@ -147,5 +155,25 @@ export const ErrorCodeMap: Record<
   [ErrorCode.PROJECT_MEMBER_NOT_FOUND]: {
     status: HttpStatus.BAD_REQUEST,
     message: '프로젝트 멤버를 찾을 수 없습니다.',
+  },
+
+  // 하위작업 관련 에러
+  [ErrorCode.SUBTASK_NOT_FOUND]: {
+    status: HttpStatus.BAD_REQUEST,
+    message: '하위 작업을 찾을 수 없습니다.',
+  },
+
+  // 작업 관련 에러
+  [ErrorCode.TASK_NOT_FOUND]: {
+    status: HttpStatus.BAD_REQUEST,
+    message: '작업을 찾을 수 없습니다.',
+  },
+  [ErrorCode.INVALID_TASK_STATUS]: {
+    status: HttpStatus.BAD_REQUEST,
+    message: '유효하지 않은 작업 상태입니다.',
+  },
+  [ErrorCode.COMMENT_NOT_FOUND]: {
+    status: HttpStatus.BAD_REQUEST,
+    message: '댓글을 찾을 수 없습니다.',
   },
 };

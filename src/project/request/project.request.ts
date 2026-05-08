@@ -11,7 +11,7 @@ export class ProjectRequest {
   description?: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   workspaceId: string;
 
   @IsString()
@@ -23,7 +23,7 @@ export class ProjectRequest {
     return {
       name,
       description,
-      workspace: { connect: { id: workspaceId } },
-    };
+      ...(workspaceId ? { workspace: { connect: { id: workspaceId } } } : {}),
+    } as Prisma.ProjectCreateInput;
   }
 }

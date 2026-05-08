@@ -6,6 +6,7 @@ import { ImageModule } from 'src/image/image.module';
 import { ProjectMemberModule } from 'src/project-member/project-member.module';
 import { WorkspaceMemberModule } from 'src/workspace-member/workspace-member.module';
 import { LabelModule } from 'src/label/label.module';
+import { ActivityModule } from 'src/activity/activity.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { LabelModule } from 'src/label/label.module';
     ProjectMemberModule,
     WorkspaceMemberModule,
     LabelModule,
+    ActivityModule,
   ],
   controllers: [ProjectController],
   providers: [ProjectService, ProjectRepository],

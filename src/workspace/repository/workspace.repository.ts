@@ -50,4 +50,37 @@ export class WorkspaceRepository {
       data: { inviteCode: newInviteCode },
     });
   }
+
+  async getWorkspaceStats(workspaceId: string) {
+    const [projectCount, memberCount, taskCounts] = await Promise.all([
+      this.prisma.project.count({ where: { workspaceId } }),
+      this.prisma.workspaceMember.count({ where: { workspaceId } }),
+      this.prisma.task.groupBy({
+        by: ['status'],
+        where: { project: { workspaceId } },
+        _count: true,
+      }),
+    ]);
+
+    const stats = {
+      projects: projectCount,
+      members: memberCount,
+      todo: 0,
+      inProgress: 0,
+      review: 0,
+      done: 0,
+      total: 0,
+    };
+
+    taskCounts.forEach((group) => {
+      const count = group._count;
+      stats.total += count;
+      if (group.status === 'TODO') stats.todo = count;
+      if (group.status === 'IN_PROGRESS') stats.inProgress = count;
+      if (group.status === 'REVIEW') stats.review = count;
+      if (group.status === 'DONE') stats.done = count;
+    });
+
+    return stats;
+  }
 }

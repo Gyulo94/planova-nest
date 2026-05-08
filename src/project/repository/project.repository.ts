@@ -51,4 +51,14 @@ export class ProjectRepository {
     });
     return true;
   }
+  async getTaskStatusCounts(projectId: string) {
+    const [todo, inProgress, review, done, total] = await Promise.all([
+      this.prisma.task.count({ where: { projectId, status: 'TODO' } }),
+      this.prisma.task.count({ where: { projectId, status: 'IN_PROGRESS' } }),
+      this.prisma.task.count({ where: { projectId, status: 'REVIEW' } }),
+      this.prisma.task.count({ where: { projectId, status: 'DONE' } }),
+      this.prisma.task.count({ where: { projectId } }),
+    ]);
+    return { todo, inProgress, review, done, total };
+  }
 }

@@ -89,4 +89,9 @@ export class WorkspaceController {
   ): Promise<void> {
     await this.workspaceService.resetInviteCode(workspaceId, user.id);
   }
+
+  @Get(':workspaceId/stats')
+  async getWorkspaceStats(@Param('workspaceId') workspaceId: string) {
+    return this.workspaceService.findWorkspaceStats(workspaceId);
+  }
 }

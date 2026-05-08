@@ -7,6 +7,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
+import { OnEvent } from '@nestjs/event-emitter';
 import { Server, Socket } from 'socket.io';
 import { WsAuthService } from 'src/global/ws/ws-auth.service';
 import { WsLoggerService } from 'src/global/ws/ws-logger.service';
@@ -70,5 +71,116 @@ export class TaskGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   emitTaskCreated(projectId: string, task: any) {
     this.server.to(`project:${projectId}`).emit('task:created', task);
+  }
+
+  emitActivityCreated(projectId: string, activity: any) {
+    this.server.to(`project:${projectId}`).emit('activity:created', activity);
+  }
+
+  emitTaskUpdated(projectId: string, task: any) {
+    this.server.to(`project:${projectId}`).emit('task:updated', task);
+  }
+
+  emitTaskDeleted(projectId: string, taskId: string) {
+    this.server.to(`project:${projectId}`).emit('task:deleted', taskId);
+  }
+
+  @OnEvent('activity.created')
+  handleActivityCreated(activity: any) {
+    if (activity.projectId) {
+      this.emitActivityCreated(activity.projectId, activity);
+    }
+  }
+
+  @OnEvent('project.member.invited')
+  handleProjectMemberInvited(payload: { projectId: string; members: any[] }) {
+    this.server
+      .to(`project:${payload.projectId}`)
+      .emit('project:member_invited', payload.members);
+  }
+
+  @OnEvent('project.member.removed')
+  handleProjectMemberRemoved(payload: { projectId: string; memberId: string }) {
+    this.server
+      .to(`project:${payload.projectId}`)
+      .emit('project:member_removed', payload.memberId);
+  }
+
+  @OnEvent('task.created')
+  handleTaskCreated(payload: { projectId: string; task: any }) {
+    this.emitTaskCreated(payload.projectId, payload.task);
+  }
+
+  @OnEvent('task.updated')
+  handleTaskUpdated(payload: { projectId: string; task: any }) {
+    this.emitTaskUpdated(payload.projectId, payload.task);
+  }
+
+  @OnEvent('task.deleted')
+  handleTaskDeleted(payload: { projectId: string; taskId: string }) {
+    this.emitTaskDeleted(payload.projectId, payload.taskId);
+  }
+
+  @OnEvent('milestone.created')
+  handleMilestoneCreated(payload: { projectId: string; milestone: any }) {
+    if (payload.projectId) {
+      this.server
+        .to(`project:${payload.projectId}`)
+        .emit('milestone:created', payload.milestone);
+    }
+  }
+
+  @OnEvent('milestone.updated')
+  handleMilestoneUpdated(payload: { projectId: string; milestone: any }) {
+    if (payload.projectId) {
+      this.server
+        .to(`project:${payload.projectId}`)
+        .emit('milestone:updated', payload.milestone);
+    }
+  }
+
+  @OnEvent('milestone.deleted')
+  handleMilestoneDeleted(payload: { projectId: string; milestoneId: string }) {
+    if (payload.projectId) {
+      this.server
+        .to(`project:${payload.projectId}`)
+        .emit('milestone:deleted', payload.milestoneId);
+    }
+  }
+
+  @OnEvent('epic.created')
+  handleEpicCreated(payload: { projectId: string; epic: any }) {
+    if (payload.projectId) {
+      this.server
+        .to(`project:${payload.projectId}`)
+        .emit('epic:created', payload.epic);
+    }
+  }
+
+  @OnEvent('epic.updated')
+  handleEpicUpdated(payload: { projectId: string; epic: any }) {
+    if (payload.projectId) {
+      this.server
+        .to(`project:${payload.projectId}`)
+        .emit('epic:updated', payload.epic);
+    }
+  }
+
+  @OnEvent('epic.deleted')
+  handleEpicDeleted(payload: { projectId: string; epicId: string }) {
+    if (payload.projectId) {
+      this.server
+        .to(`project:${payload.projectId}`)
+        .emit('epic:deleted', payload.epicId);
+    }
+  }
+
+  @OnEvent('label.created')
+  handleLabelCreated(payload: { projectId: string; label: any }) {
+    if (payload.projectId) {
+      this.server
+        .to(`project:${payload.projectId}`)
+        .emit('label:created', payload.label);
+    }
   }
 }

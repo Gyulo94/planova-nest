@@ -25,9 +25,10 @@ export class ImageRepository {
   }
 
   findAllByModelId(entityIds: string[], entity: string): Promise<Image[]> {
+    const idKey = `${entity}Id`;
     return this.prisma.image.findMany({
       where: {
-        [entity]: { id: { in: entityIds } },
+        [idKey]: { in: entityIds },
       },
     });
   }
@@ -36,9 +37,10 @@ export class ImageRepository {
     entityIds: string[],
     entity: string,
   ): Promise<Prisma.BatchPayload> {
+    const idKey = `${entity}Id`;
     const result = await this.prisma.image.deleteMany({
       where: {
-        [entity]: { id: { in: entityIds } },
+        [idKey]: { in: entityIds },
       },
     });
     return result;

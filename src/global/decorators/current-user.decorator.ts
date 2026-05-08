@@ -3,8 +3,10 @@ import { Request } from 'express';
 import { Payload } from 'src/global/types/payload';
 
 export const CurrentUser = createParamDecorator(
-  (_data: unknown, ctx: ExecutionContext): Payload => {
+  (data: string, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest<Request>();
-    return request.user as Payload;
+    const user = request.user;
+
+    return data ? user?.[data] : user;
   },
 );

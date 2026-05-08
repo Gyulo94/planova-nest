@@ -28,6 +28,7 @@ export class TaskRepository {
           },
         }),
       },
+      include: { project: true },
     });
   }
 
@@ -36,6 +37,9 @@ export class TaskRepository {
       where: { id: taskId },
       include: {
         project: true,
+        approval: {
+          include: { user: true },
+        },
         taskAssignee: {
           include: {
             user: {
@@ -63,7 +67,32 @@ export class TaskRepository {
         subtask: {
           orderBy: { order: 'asc' },
         },
+        epic: true,
+        milestone: true,
       },
+    });
+  }
+
+  async createApproval(taskId: string, userId: string) {
+    return this.prisma.approval.create({
+      data: {
+        taskId,
+        userId,
+      },
+    });
+  }
+
+  async findApprovalsByTaskId(taskId: string) {
+    return this.prisma.approval.findMany({
+      where: { taskId },
+      include: { user: true },
+    });
+  }
+
+  async findByIds(taskIds: string[]) {
+    return this.prisma.task.findMany({
+      where: { id: { in: taskIds } },
+      include: { project: true },
     });
   }
 
@@ -96,6 +125,8 @@ export class TaskRepository {
             },
           },
         },
+        epic: true,
+        milestone: true,
       },
     });
   }
@@ -106,6 +137,9 @@ export class TaskRepository {
       data,
       include: {
         project: true,
+        approval: {
+          include: { user: true },
+        },
         taskAssignee: {
           include: {
             user: {
@@ -129,6 +163,11 @@ export class TaskRepository {
             },
           },
         },
+        subtask: {
+          orderBy: { order: 'asc' },
+        },
+        epic: true,
+        milestone: true,
       },
     });
   }
@@ -145,5 +184,19 @@ export class TaskRepository {
     }
 
     return results;
+  }
+
+  async updateDescription(taskId: string, description: string): Promise<void> {
+    await this.prisma.task.update({
+      where: { id: taskId },
+      data: { description },
+    });
+  }
+
+  async delete(taskId: string) {
+    return this.prisma.task.delete({
+      where: { id: taskId },
+      include: { project: true },
+    });
   }
 }

@@ -4,6 +4,7 @@ import {
   NestModule,
   RequestMethod,
 } from '@nestjs/common';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { GlobalModule } from './global/global.module';
 import { RequestMiddleware } from './global/middlewares/logger.middleware';
 import { AuthModule } from './auth/auth.module';
@@ -18,6 +19,11 @@ import { TaskModule } from './task/task.module';
 import { ProjectMemberModule } from './project-member/project-member.module';
 import { WorkspaceMemberModule } from './workspace-member/workspace-member.module';
 import { LabelModule } from './label/label.module';
+import { ActivityModule } from './activity/activity.module';
+import { SubtaskModule } from './subtask/subtask.module';
+import { CommentModule } from './comment/comment.module';
+import { EpicModule } from './epic/epic.module';
+import { MilestoneModule } from './milestone/milestone.module';
 
 @Module({
   imports: [
@@ -32,6 +38,15 @@ import { LabelModule } from './label/label.module';
     WorkspaceMemberModule,
     ProjectMemberModule,
     LabelModule,
+    ActivityModule,
+    EventEmitterModule.forRoot({
+      wildcard: true,
+      delimiter: '.',
+    }),
+    SubtaskModule,
+    CommentModule,
+    EpicModule,
+    MilestoneModule,
   ],
   providers: [
     {

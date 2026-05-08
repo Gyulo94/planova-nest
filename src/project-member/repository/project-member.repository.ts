@@ -142,6 +142,20 @@ export class ProjectMemberRepository {
     });
   }
 
+  async deleteManyByWorkspaceId(
+    workspaceId: string,
+    userId: string,
+  ): Promise<void> {
+    await this.prisma.projectMember.deleteMany({
+      where: {
+        userId,
+        project: {
+          workspaceId,
+        },
+      },
+    });
+  }
+
   findMyOwnProjects(userId: string) {
     return this.prisma.projectMember.findMany({
       where: {
@@ -151,6 +165,13 @@ export class ProjectMemberRepository {
       include: {
         project: { include: { image: true } },
       },
+    });
+  }
+
+  async getProjectWithWorkspace(projectId: string) {
+    return this.prisma.project.findUnique({
+      where: { id: projectId },
+      include: { workspace: true },
     });
   }
 }

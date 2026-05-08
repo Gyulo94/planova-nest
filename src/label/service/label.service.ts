@@ -1,20 +1,42 @@
 import { Injectable } from '@nestjs/common';
-import { DEFAULT_TASK_LABELS } from 'src/global/constants';
 import { LabelRepository } from '../repository/label.repository';
 import { LabelRequest } from '../request/label.request';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class LabelService {
-  constructor(private readonly labelRepository: LabelRepository) {}
+  constructor(
+    private readonly labelRepository: LabelRepository,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
+
+  private generateRandomPastelColor() {
+    // 0~360도 색조 무작위 추출
+    const hue = Math.floor(Math.random() * 360);
+    // 채도 60%~90% 사이에서 무작위
+    const saturation = Math.floor(Math.random() * 30) + 60;
+    // 밝기 85%~95% 사이에서 무작위 (부드러운 파스텔톤)
+    const lightness = Math.floor(Math.random() * 10) + 85;
+
+    const bgColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    // 텍스트 가독성을 위해 채도는 높이고 밝기는 확 낮춤
+    const textColor = `hsl(${hue}, ${saturation + 10}%, 30%)`;
+
+    return { bgColor, textColor };
+  }
 
   async createLabel(request: LabelRequest) {
-    const projectLabels = await this.labelRepository.findByProjectId(
-      request.projectId,
+    const palette = this.generateRandomPastelColor();
+    const label = await this.labelRepository.create(
+      LabelRequest.toModel(request, palette),
     );
-    const palette =
-      DEFAULT_TASK_LABELS[projectLabels.length % DEFAULT_TASK_LABELS.length];
 
-    return this.labelRepository.create(LabelRequest.toModel(request, palette));
+    this.eventEmitter.emit('label.created', {
+      projectId: label.projectId,
+      label,
+    });
+
+    return label;
   }
 
   async createDefaultLabels(projectId: string) {

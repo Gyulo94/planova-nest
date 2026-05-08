@@ -83,4 +83,10 @@ export class ProjectController {
   ): Promise<void> {
     await this.projectService.deleteProject(projectId, user.id);
   }
+
+  @Get(':projectId/task-counts')
+  async getTaskStatusCounts(@Param('projectId') projectId: string) {
+    const response = await this.projectService.getTaskStatusCounts(projectId);
+    return response;
+  }
 }

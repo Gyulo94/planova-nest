@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { WorkspaceMemberRepository } from '../repository/workspace-member.repository';
 import { ApiException } from 'src/global/exceptions/api.exception';
 import { ErrorCode } from 'src/global/enums/error-code.enum';
@@ -6,11 +7,16 @@ import { WorkspaceMemberResponse } from '../response/workspace-member.response';
 import { WorkspaceResponse } from 'src/workspace/response/workspace.response';
 import { WorkspaceMemberRequest } from '../reuqest/workspace-member.request';
 import { Transactional } from 'src/global/decorators/transactional.decorator';
+import { ActivityService } from 'src/activity/service/activity.service';
+import { ProjectMemberRepository } from 'src/project-member/repository/project-member.repository';
 
 @Injectable()
 export class WorkspaceMemberService {
   constructor(
     private readonly workspaceMemberRepository: WorkspaceMemberRepository,
+    private readonly projectMemberRepository: ProjectMemberRepository,
+    private readonly activityService: ActivityService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async createWorkspaceMember(workspaceId: string, userId: string) {
@@ -101,7 +107,19 @@ export class WorkspaceMemberService {
     const newWorkspaceMember = await this.workspaceMemberRepository.add(
       WorkspaceMemberRequest.toModel(request, userId),
     );
+
+    await this.activityService.createActivity({
+      action: 'WORKSPACE_JOIN',
+      description: `'${newWorkspaceMember.user.name || newWorkspaceMember.user.email}'님이 워크스페이스 '${newWorkspaceMember.workspace.name}'에 참여했습니다.`,
+      workspaceId: request.workspaceId,
+      userId,
+    });
+
     const response = WorkspaceMemberResponse.fromModel(newWorkspaceMember);
+    this.eventEmitter.emit('workspace.member.joined', {
+      workspaceId: request.workspaceId,
+      member: response,
+    });
     return response;
   }
 
@@ -132,6 +150,7 @@ export class WorkspaceMemberService {
     return response;
   }
 
+  @Transactional()
   async removeWorkspaceMember(
     workspaceId: string,
     memberId: string,
@@ -149,7 +168,44 @@ export class WorkspaceMemberService {
     if (member.role === 'OWNER') {
       throw new ApiException(ErrorCode.FORBIDDEN);
     }
+
+    // Cascade: Remove member from all projects in this workspace
+    const projectMemberships =
+      await this.projectMemberRepository.findByUserIdAndWorkspaceId(
+        memberId,
+        workspaceId,
+      );
+    const projectIds = projectMemberships.map((p) => p.id);
+
+    await this.projectMemberRepository.deleteManyByWorkspaceId(
+      workspaceId,
+      memberId,
+    );
+
+    // Remove member from workspace
     await this.workspaceMemberRepository.delete(workspaceId, memberId);
+
+    await this.activityService.createActivity({
+      action: 'WORKSPACE_MEMBER_REMOVED',
+      description: `'${member.user.name || member.user.email}'님을 워크스페이스에서 내보냈습니다.`,
+      workspaceId,
+      userId, // The person who performed the removal (Admin/Owner)
+      metadata: { removedUserId: memberId },
+    });
+
+    this.eventEmitter.emit('workspace.member.removed', {
+      workspaceId,
+      memberId,
+    });
+
+    // Emit project removal events for real-time updates on project member screens
+    projectIds.forEach((projectId) => {
+      this.eventEmitter.emit('project.member.removed', {
+        workspaceId,
+        projectId,
+        memberId,
+      });
+    });
   }
 
   findMyOwnWorkspaces(userId: string) {

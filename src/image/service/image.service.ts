@@ -119,7 +119,7 @@ export class ImageService {
       );
       this.LOGGER.log(`2. 이미지 수정 요청 완료`);
 
-      if (existingImages && existingImages.length > 0) {
+      if (existingImages) {
         this.LOGGER.log(`3. 기존 이미지들 삭제 중`);
         await this.imageRepository.deleteMany([id], entity);
         this.LOGGER.log(`4. 기존 이미지들 삭제 완료`);
@@ -182,5 +182,10 @@ export class ImageService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async findImageUrlsByModelId(entityId: string, entity: string): Promise<string[]> {
+    const images = await this.imageRepository.findAllByModelId([entityId], entity);
+    return images.map((image) => image.url);
   }
 }

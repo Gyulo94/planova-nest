@@ -16,6 +16,9 @@ export enum ResponseMessage {
   CREATE_LABEL_SUCCESS = '라벨이 성공적으로 생성되었습니다.',
 
   CREATE_TASK_SUCCESS = '작업이 성공적으로 생성되었습니다.',
+  UPDATE_TASK_SUCCESS = '작업이 성공적으로 수정되었습니다.',
+  DELETE_TASK_SUCCESS = '작업이 성공적으로 삭제되었습니다.',
+  APPROVE_TASK_SUCCESS = '작업이 성공적으로 승인되었습니다.',
 
   INVITE_PROJECT_MEMBER_SUCCESS = '프로젝트 멤버 초대가 완료되었습니다.',
   UPDATE_PROJECT_MEMBER_SUCCESS = '프로젝트 멤버가 성공적으로 업데이트되었습니다.',
@@ -24,4 +27,16 @@ export enum ResponseMessage {
   JOIN_WORKSPACE_SUCCESS = '워크스페이스에 성공적으로 참여했습니다.',
   UPDATE_WORKSPACE_MEMBER_SUCCESS = '워크스페이스 멤버가 성공적으로 업데이트되었습니다.',
   DELETE_WORKSPACE_MEMBER_SUCCESS = '워크스페이스 멤버가 성공적으로 추방되었습니다.',
+
+  CREATE_COMMENT_SUCCESS = '댓글이 성공적으로 작성되었습니다.',
+  UPDATE_COMMENT_SUCCESS = '댓글이 성공적으로 수정되었습니다.',
+  DELETE_COMMENT_SUCCESS = '댓글이 성공적으로 삭제되었습니다.',
+
+  CREATE_EPIC_SUCCESS = '에픽이 성공적으로 생성되었습니다.',
+  UPDATE_EPIC_SUCCESS = '에픽이 성공적으로 수정되었습니다.',
+  DELETE_EPIC_SUCCESS = '에픽이 성공적으로 삭제되었습니다.',
+
+  CREATE_MILESTONE_SUCCESS = '마일스톤이 성공적으로 생성되었습니다.',
+  UPDATE_MILESTONE_SUCCESS = '마일스톤이 성공적으로 수정되었습니다.',
+  DELETE_MILESTONE_SUCCESS = '마일스톤이 성공적으로 삭제되었습니다.',
 }
