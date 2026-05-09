@@ -1,6 +1,6 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { PORT } from './global/constants';
+import { CLIENT_URL, PORT } from './global/constants';
 import { ApiInterceptor } from './global/apis/api.interceptor';
 import { HttpExceptionFilter } from './global/filters/http-exception.filter';
 import { winstonLogger } from './global/config/winston.config';
@@ -14,7 +14,7 @@ async function bootstrap() {
   });
   app.use(cookieParser());
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    origin: [CLIENT_URL],
     credentials: true,
   });
   app.setGlobalPrefix('api');
