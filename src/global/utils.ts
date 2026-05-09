@@ -2,6 +2,7 @@ import { Response } from 'express';
 import {
   JWT_REFRESH_KEY_EXPIRES_IN,
   JWT_SECRET_KEY_EXPIRES_IN,
+  NODE_ENV,
 } from './constants';
 
 export function setCookies(
@@ -11,14 +12,14 @@ export function setCookies(
 ) {
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: NODE_ENV === 'production',
+    sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: JWT_SECRET_KEY_EXPIRES_IN * 1000,
   });
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: NODE_ENV === 'production',
+    sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: JWT_REFRESH_KEY_EXPIRES_IN * 1000,
   });
 }
@@ -26,13 +27,13 @@ export function setCookies(
 export function clearCookies(res: Response) {
   res.clearCookie('accessToken', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: NODE_ENV === 'production',
+    sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
   });
   res.clearCookie('refreshToken', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: NODE_ENV === 'production',
+    sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
   });
 }
 
