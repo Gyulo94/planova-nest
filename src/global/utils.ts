@@ -14,12 +14,14 @@ export function setCookies(
     httpOnly: true,
     secure: NODE_ENV === 'production',
     sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
+    partitioned: true,
     maxAge: JWT_SECRET_KEY_EXPIRES_IN * 1000,
   });
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     secure: NODE_ENV === 'production',
     sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
+    partitioned: true,
     maxAge: JWT_REFRESH_KEY_EXPIRES_IN * 1000,
   });
 }
