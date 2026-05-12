@@ -69,21 +69,26 @@ export class AuthService {
 
   async refresh(req: Request): Promise<TokenResponse> {
     const refreshToken = req.cookies['refreshToken'];
-    if (!refreshToken)
+    if (!refreshToken) {
+      this.LOGGER.warn('리프레시 토큰 쿠키가 없습니다.');
       throw new ApiException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
+    }
 
     const payload = await this.jwtService
       .verifyAsync(refreshToken, {
         secret: JWT_REFRESH_KEY,
       })
-      .catch(() => {
+      .catch((err) => {
+        this.LOGGER.warn(`유효하지 않은 리프레시 토큰: ${err.message}`);
         throw new ApiException(ErrorCode.INVALID_REFRESH_TOKEN);
       });
 
     const refreshKey = RedisKey.login.refreshToken(payload.id);
     const sessionKey = RedisKey.user.session(payload.id);
 
-    if (refreshToken !== (await this.redis.get(refreshKey))) {
+    const storedRefreshToken = await this.redis.get(refreshKey);
+    if (refreshToken !== storedRefreshToken) {
+      this.LOGGER.warn(`리프레시 토큰 불일치 - User ID: ${payload.id}`);
       throw new ApiException(ErrorCode.INVALID_REFRESH_TOKEN);
     }
 
