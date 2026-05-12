@@ -163,4 +163,9 @@ export class WorkspaceGateway
       .to(`workspace:${payload.workspaceId}`)
       .emit("workspace:epic_updated", payload);
   }
+
+  @OnEvent("user.updated")
+  handleUserUpdated(user: any) {
+    this.server.emit("user:updated", user);
+  }
 }

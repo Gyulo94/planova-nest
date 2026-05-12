@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client';
 
-export type ProjectWithImage = Prisma.ProjectGetPayload<{
+export type ProjectPayload = Prisma.ProjectGetPayload<{
   include: { image: true };
 }>;

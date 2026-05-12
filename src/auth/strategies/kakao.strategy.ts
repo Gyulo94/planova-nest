@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-kakao';
-import { KAKAO_CLIENT_ID, KAKAO_CLIENT_SECRET } from 'src/global/constants';
+import {
+  KAKAO_CLIENT_ID,
+  KAKAO_CLIENT_SECRET,
+  SOCIAL_CALLBACK_URL,
+} from 'src/global/constants';
 import { SocialUserRequest } from 'src/user/request/social-user.request';
 import { UserService } from 'src/user/service/user.service';
 
@@ -11,7 +15,7 @@ export class KakaoStrategy extends PassportStrategy(Strategy, 'kakao') {
     super({
       clientID: KAKAO_CLIENT_ID!,
       clientSecret: KAKAO_CLIENT_SECRET,
-      callbackURL: '/api/auth/callback/kakao',
+      callbackURL: `${SOCIAL_CALLBACK_URL}/kakao`,
     });
   }
 

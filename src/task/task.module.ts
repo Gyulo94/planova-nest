@@ -7,9 +7,16 @@ import { TaskGateway } from './gateway/task.gateway';
 import { ProjectMemberModule } from 'src/project-member/project-member.module';
 import { ImageModule } from 'src/image/image.module';
 import { ActivityModule } from 'src/activity/activity.module';
+import { EpicModule } from 'src/epic/epic.module';
 
 @Module({
-  imports: [LabelModule, ProjectMemberModule, ImageModule, ActivityModule],
+  imports: [
+    LabelModule,
+    ProjectMemberModule,
+    ImageModule,
+    ActivityModule,
+    EpicModule,
+  ],
   controllers: [TaskController],
   providers: [TaskService, TaskRepository, TaskGateway],
   exports: [TaskService, TaskRepository],

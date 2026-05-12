@@ -1,84 +1,61 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/global/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { EpicPayload } from 'src/global/types';
 
 @Injectable()
 export class EpicRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: Prisma.EpicCreateInput) {
+  private readonly epicInclude = {
+    project: true,
+    user: true,
+    workspace: true,
+    _count: {
+      select: { tasks: true },
+    },
+    tasks: true,
+    milestone: true,
+  };
+
+  async create(data: Prisma.EpicCreateInput): Promise<EpicPayload> {
     return this.prisma.epic.create({
       data,
-      include: {
-        project: true,
-        _count: {
-          select: { task: true },
-        },
-      },
+      include: this.epicInclude,
     });
   }
 
-  async findAllByProjectId(projectId: string) {
+  async findAllByProjectId(projectId: string): Promise<EpicPayload[]> {
     return this.prisma.epic.findMany({
       where: { projectId },
-      include: {
-        project: true,
-        _count: {
-          select: { task: true },
-        },
-        task: {
-          select: {
-            status: true,
-          },
-        },
-      },
+      include: this.epicInclude,
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  async findById(id: string) {
+  async findById(id: string): Promise<EpicPayload | null> {
     return this.prisma.epic.findUnique({
       where: { id },
-      include: {
-        project: true,
-        _count: {
-          select: { task: true },
-        },
-        task: {
-          include: {
-            taskAssignee: {
-              include: {
-                user: true,
-              },
-            },
-            taskLabel: {
-              include: {
-                label: true,
-              },
-            },
-          },
-        },
-      },
+      include: this.epicInclude,
     });
   }
 
-  async update(id: string, data: Prisma.EpicUpdateInput) {
+  async update(id: string, data: Prisma.EpicUpdateInput): Promise<EpicPayload> {
     return this.prisma.epic.update({
       where: { id },
       data,
-      include: {
-        project: true,
-      },
+      include: this.epicInclude,
     });
   }
 
-  async delete(id: string) {
+  async delete(id: string): Promise<EpicPayload> {
     return this.prisma.epic.delete({
       where: { id },
+      include: this.epicInclude,
     });
   }
 
-  async findLastEpicNumber(workspaceId: string) {
+  async findLastEpicNumber(workspaceId: string): Promise<number> {
     const lastEpic = await this.prisma.epic.findFirst({
       where: { workspaceId },
       orderBy: { epicNumber: 'desc' },

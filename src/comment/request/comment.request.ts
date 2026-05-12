@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
-export class CreateCommentRequest {
+export class CommentRequest {
   @IsNotEmpty()
   @IsString()
   content: string;
@@ -8,4 +8,11 @@ export class CreateCommentRequest {
   @IsNotEmpty()
   @IsUUID()
   taskId: string;
+
+  static toModel(request: CommentRequest) {
+    return {
+      content: request.content,
+      taskId: request.taskId,
+    };
+  }
 }

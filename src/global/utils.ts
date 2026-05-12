@@ -47,3 +47,25 @@ export function generateInviteCode(length: number): string {
   }
   return inviteCode;
 }
+
+export function extractImageSrcUrls(html: string): string[] {
+  const srcRegex = /<img[^>]*\ssrc=["']([^"']+)["'][^>]*>/gi;
+  const urls = new Set<string>();
+  let match: RegExpExecArray | null = srcRegex.exec(html);
+
+  while (match) {
+    if (match[1]) {
+      urls.add(match[1]);
+    }
+    match = srcRegex.exec(html);
+  }
+
+  return [...urls];
+}
+
+export function isSameUrlSet(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  const aSet = new Set(a);
+  if (aSet.size !== b.length) return false;
+  return b.every((url) => aSet.has(url));
+}

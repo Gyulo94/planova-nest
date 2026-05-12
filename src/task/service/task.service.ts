@@ -14,28 +14,9 @@ import { ActivityService } from 'src/activity/service/activity.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApiException } from 'src/global/exceptions/api.exception';
 import { ErrorCode } from 'src/global/enums/error-code.enum';
-
-function extractImageSrcUrls(html: string): string[] {
-  const srcRegex = /<img[^>]*\ssrc=["']([^"']+)["'][^>]*>/gi;
-  const urls = new Set<string>();
-  let match: RegExpExecArray | null = srcRegex.exec(html);
-
-  while (match) {
-    if (match[1]) {
-      urls.add(match[1]);
-    }
-    match = srcRegex.exec(html);
-  }
-
-  return [...urls];
-}
-
-function isSameUrlSet(a: string[], b: string[]): boolean {
-  if (a.length !== b.length) return false;
-  const aSet = new Set(a);
-  if (aSet.size !== b.length) return false;
-  return b.every((url) => aSet.has(url));
-}
+import { extractImageSrcUrls, isSameUrlSet } from 'src/global/utils';
+import { TaskResponse } from '../response/task.response';
+import { TaskDetailPayload, TaskPayload } from 'src/global/types';
 
 @Injectable()
 export class TaskService {
@@ -51,7 +32,8 @@ export class TaskService {
   ) {}
   private readonly LOGGER = new Logger(TaskService.name);
 
-  async createTask(request: TaskRequest, userId: string) {
+  // 작업 생성
+  async createTask(request: TaskRequest, userId: string): Promise<TaskPayload> {
     const taskNumber = await this.taskRepository.getNextTaskNumber(
       request.projectId,
     );
@@ -69,9 +51,14 @@ export class TaskService {
       resolvedLabelId,
     );
 
-    await this.redisService.del(RedisKey.task.projectTasks(request.projectId));
+    // 작업 생성 후 캐시 삭제 및 실시간 알림
+    const cacheKey = RedisKey.task.projectTasks(request.projectId);
+    await this.redisService.del(cacheKey);
+    setTimeout(() => this.redisService.del(cacheKey), 500); // 트랜잭션 커밋 대기 후 재삭제
+
     this.taskGateway.emitTaskCreated(request.projectId, task);
 
+    // 활동 로그 생성
     await this.activityService.createActivity({
       action: 'TASK_CREATE',
       description: `[${task.project.name}] 작업 '${task.title}'을(를) 생성했습니다.`,
@@ -81,6 +68,7 @@ export class TaskService {
       userId,
     });
 
+    // 작업 생성 이벤트 발행
     this.eventEmitter.emit('task.created', {
       workspaceId: task.project.workspaceId,
       projectId: task.projectId,
@@ -90,25 +78,31 @@ export class TaskService {
     return task;
   }
 
-  async findTaskByTaskId(id: string) {
+  // 작업 조회
+  async findTaskByTaskId(id: string): Promise<TaskDetailPayload | null> {
     return this.taskRepository.getById(id);
   }
 
-  async findTasksByProjectId(projectId: string, userId: string) {
+  async findTasksByProjectId(
+    projectId: string,
+    userId: string,
+  ): Promise<TaskResponse[]> {
     await this.projectMemberService.validateProjectMember(projectId, userId);
 
     const cacheKey = RedisKey.task.projectTasks(projectId);
     const cached = await this.redisService.get(cacheKey);
 
     if (cached) {
-      this.LOGGER.debug('캐시에서 작업 목록 반환: projectId=${projectId}');
+      this.LOGGER.debug(`캐시에서 작업 목록 반환: projectId=${projectId}`);
       return JSON.parse(cached);
     }
 
     const tasks = await this.taskRepository.findTasksByProjectId(projectId);
-    await this.redisService.set(cacheKey, JSON.stringify(tasks), 30);
+    const response = tasks.map((task) => TaskResponse.fromModel(task));
 
-    return tasks;
+    await this.redisService.set(cacheKey, JSON.stringify(response), 30);
+
+    return response;
   }
 
   @Transactional()
@@ -117,7 +111,9 @@ export class TaskService {
     const existingTasks = await this.taskRepository.findByIds(ids);
 
     const result = await this.taskRepository.reorder(request.updates);
-    await this.redisService.del(RedisKey.task.projectTasks(request.projectId));
+    const cacheKey = RedisKey.task.projectTasks(request.projectId);
+    await this.redisService.del(cacheKey);
+    setTimeout(() => this.redisService.del(cacheKey), 500);
 
     const statusMap: Record<string, string> = {
       BACKLOG: '백로그',
@@ -229,7 +225,10 @@ export class TaskService {
 
     const task = await this.taskRepository.getById(id);
     if (task) {
-      await this.redisService.del(RedisKey.task.projectTasks(task.projectId));
+      const cacheKey = RedisKey.task.projectTasks(task.projectId);
+      await this.redisService.del(cacheKey);
+      setTimeout(() => this.redisService.del(cacheKey), 500);
+
       await this.activityService.createActivity({
         action: 'TASK_UPDATE_DESCRIPTION',
         description: `[${task.project.name}] 작업 '${task.title}'의 설명을 수정했습니다.`,
@@ -244,7 +243,11 @@ export class TaskService {
   }
 
   @Transactional()
-  async updateTask(id: string, request: TaskRequest, userId: string) {
+  async updateTask(
+    id: string,
+    request: TaskRequest,
+    userId: string,
+  ): Promise<TaskDetailPayload> {
     const existingTask = await this.taskRepository.getById(id);
     if (!existingTask) throw new ApiException(ErrorCode.TASK_NOT_FOUND);
 
@@ -257,7 +260,6 @@ export class TaskService {
       labelId,
       labelName,
       epicId,
-      milestoneId,
       projectId,
       ...rest
     } = request;
@@ -272,40 +274,35 @@ export class TaskService {
           : epicId
             ? { connect: { id: epicId } }
             : { disconnect: true },
-      milestone:
-        milestoneId === undefined
-          ? undefined
-          : milestoneId
-            ? { connect: { id: milestoneId } }
-            : { disconnect: true },
     };
 
-    if (assigneeId) {
-      data.taskAssignee = {
-        deleteMany: {},
-        create: { userId: assigneeId },
-      };
+    if (assigneeId !== undefined) {
+      data.assignee = assigneeId
+        ? { connect: { id: assigneeId } }
+        : { disconnect: true };
     }
 
-    if (labelId || labelName) {
+    if (labelId !== undefined || labelName !== undefined) {
       const resolvedLabelId =
         labelId ||
-        (await this.labelService.resolveLabelId(
-          existingTask.projectId,
-          labelName,
-        ));
+        (labelName
+          ? await this.labelService.resolveLabelId(
+              existingTask.projectId,
+              labelName,
+            )
+          : null);
 
-      data.taskLabel = {
-        deleteMany: {},
-        create: { labelId: resolvedLabelId },
-      };
+      data.label = resolvedLabelId
+        ? { connect: { id: resolvedLabelId } }
+        : { disconnect: true };
     }
 
     const updatedTask = await this.taskRepository.update(id, data);
 
-    await this.redisService.del(
-      RedisKey.task.projectTasks(existingTask.projectId),
-    );
+    const cacheKey = RedisKey.task.projectTasks(existingTask.projectId);
+    await this.redisService.del(cacheKey);
+    setTimeout(() => this.redisService.del(cacheKey), 500); // 트랜잭션 커밋 대기 후 재삭제
+
     this.taskGateway.emitTaskUpdated(existingTask.projectId, updatedTask);
 
     await this.activityService.createActivity({
@@ -327,15 +324,16 @@ export class TaskService {
   }
 
   @Transactional()
-  async deleteTask(id: string, userId: string) {
+  async deleteTask(id: string, userId: string): Promise<void> {
     const existingTask = await this.taskRepository.getById(id);
     if (!existingTask) throw new ApiException(ErrorCode.TASK_NOT_FOUND);
 
-    const deletedTask = await this.taskRepository.delete(id);
+    await this.taskRepository.delete(id);
 
-    await this.redisService.del(
-      RedisKey.task.projectTasks(existingTask.projectId),
-    );
+    const cacheKey = RedisKey.task.projectTasks(existingTask.projectId);
+    await this.redisService.del(cacheKey);
+    setTimeout(() => this.redisService.del(cacheKey), 500); // 트랜잭션 커밋 대기 후 재삭제
+
     this.taskGateway.emitTaskDeleted(existingTask.projectId, id);
 
     await this.activityService.createActivity({
@@ -352,12 +350,13 @@ export class TaskService {
       projectId: existingTask.projectId,
       taskId: id,
     });
-
-    return deletedTask;
   }
 
   @Transactional()
-  async approveTask(id: string, userId: string) {
+  async approveTask(
+    id: string,
+    userId: string,
+  ): Promise<TaskDetailPayload> {
     const task = await this.taskRepository.getById(id);
     if (!task) throw new ApiException(ErrorCode.TASK_NOT_FOUND);
 
@@ -381,7 +380,7 @@ export class TaskService {
     const updatedApprovals =
       await this.taskRepository.findApprovalsByTaskId(id);
 
-    let finalTask = task;
+    let finalTask: TaskDetailPayload = task;
     if (updatedApprovals.length >= task.requiredApprovals) {
       finalTask = await this.taskRepository.update(id, {
         status: 'DONE',
@@ -389,7 +388,9 @@ export class TaskService {
         progress: 100,
       });
 
-      await this.redisService.del(RedisKey.task.projectTasks(task.projectId));
+      const cacheKey = RedisKey.task.projectTasks(task.projectId);
+      await this.redisService.del(cacheKey);
+      setTimeout(() => this.redisService.del(cacheKey), 500);
 
       await this.activityService.createActivity({
         action: 'TASK_APPROVED',
@@ -409,7 +410,7 @@ export class TaskService {
         userId,
       });
       // 승인 목록을 포함한 상태로 반환하기 위해 task 객체 보완
-      finalTask = { ...task, approval: updatedApprovals } as any;
+      finalTask = { ...task, approval: updatedApprovals };
     }
 
     this.eventEmitter.emit('task.updated', {

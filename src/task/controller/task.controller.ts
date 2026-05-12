@@ -99,7 +99,9 @@ export class TaskController {
   @Post(':id/approve')
   async approveTask(@Param('id') taskId: string, @CurrentUser() user: Payload) {
     const response = await this.taskService.approveTask(taskId, user.id);
-    this.taskGateway.emitTaskUpdated(response.projectId, response);
+    if (response && response.projectId) {
+      this.taskGateway.emitTaskUpdated(response.projectId, response);
+    }
     return response;
   }
 }

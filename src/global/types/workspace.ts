@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client';
 
-export type WorkspaceWithImage = Prisma.WorkspaceGetPayload<{
+export type WorkspacePayload = Prisma.WorkspaceGetPayload<{
   include: { image: true };
 }>;

@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/global/prisma/prisma.service';
-import { WorkspaceWithImage } from 'src/global/types';
+import { WorkspacePayload } from 'src/global/types';
 
 @Injectable()
 export class WorkspaceRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: Prisma.WorkspaceCreateInput): Promise<WorkspaceWithImage> {
+  async create(data: Prisma.WorkspaceCreateInput): Promise<WorkspacePayload> {
     return this.prisma.workspace.create({
       data,
       include: {
@@ -16,7 +16,7 @@ export class WorkspaceRepository {
     });
   }
 
-  async findWorkspaceById(id: string): Promise<WorkspaceWithImage | null> {
+  async findWorkspaceById(id: string): Promise<WorkspacePayload | null> {
     return this.prisma.workspace.findUnique({
       where: { id },
       include: { image: true },
@@ -26,7 +26,7 @@ export class WorkspaceRepository {
   async update(
     data: Prisma.WorkspaceUpdateInput,
     id: string,
-  ): Promise<WorkspaceWithImage> {
+  ): Promise<WorkspacePayload> {
     return this.prisma.workspace.update({
       where: { id },
       data,

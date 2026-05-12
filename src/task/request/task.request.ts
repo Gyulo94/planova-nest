@@ -42,10 +42,6 @@ export class TaskRequest {
   @IsString()
   epicId?: string;
 
-  @IsOptional()
-  @IsString()
-  milestoneId?: string;
-
   static toModel(
     request: TaskRequest,
     taskNumber: number,
@@ -59,7 +55,6 @@ export class TaskRequest {
       dueDate: request.dueDate ? new Date(request.dueDate) : undefined,
       project: { connect: { id: request.projectId } },
       epic: request.epicId ? { connect: { id: request.epicId } } : undefined,
-      milestone: request.milestoneId ? { connect: { id: request.milestoneId } } : undefined,
     };
   }
 }

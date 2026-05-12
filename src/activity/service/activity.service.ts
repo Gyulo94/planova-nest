@@ -4,6 +4,7 @@ import { ActivityRepository } from '../repository/activity.repository';
 import { ActivityRequest } from '../request/activity.request';
 import { RedisService } from 'src/global/redis/serivce/redis.service';
 import { RedisKey } from 'src/global/redis/redis.key';
+import { ActivityResponse } from '../response/activity.response';
 
 @Injectable()
 export class ActivityService {
@@ -15,7 +16,7 @@ export class ActivityService {
 
   private readonly LOGGER = new Logger(ActivityService.name);
 
-  async createActivity(request: ActivityRequest) {
+  async createActivity(request: ActivityRequest): Promise<ActivityResponse> {
     const throttleActions = ['TASK_UPDATE_DESCRIPTION', 'TASK_UPDATE'];
 
     if (throttleActions.includes(request.action)) {
@@ -28,24 +29,31 @@ export class ActivityService {
       if (lastActivity) {
         const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
         if (new Date(lastActivity.createdAt) > fiveMinutesAgo) {
-          return lastActivity;
+          return ActivityResponse.fromModel(lastActivity);
         }
       }
     }
 
-    const activity = await this.activityRepository.create(request);
+    const activity = await this.activityRepository.create(
+      ActivityRequest.toModel(request),
+    );
 
     if (activity.projectId) {
-      await this.redisService.del(`*activity:project:${activity.projectId}*`);
+      const pattern = `*activity:project:${activity.projectId}*`;
+      await this.redisService.del(pattern);
+      setTimeout(() => this.redisService.del(pattern), 500);
     }
     if (activity.workspaceId) {
-      await this.redisService.del(
-        `*activity:workspace:${activity.workspaceId}*`,
-      );
+      const pattern = `*activity:workspace:${activity.workspaceId}*`;
+      await this.redisService.del(pattern);
+      setTimeout(() => this.redisService.del(pattern), 500);
     }
 
     this.eventEmitter.emit('activity.created', activity);
-    return activity;
+
+    const response = ActivityResponse.fromModel(activity);
+
+    return response;
   }
 
   async findActivities(params: {
@@ -55,7 +63,7 @@ export class ActivityService {
     userId?: string;
     page?: number;
     limit?: number;
-  }) {
+  }): Promise<ActivityResponse[]> {
     const { page = 1, limit = 20, ...filters } = params;
 
     let cacheKey: string | null = null;
@@ -88,10 +96,14 @@ export class ActivityService {
       take: limit,
     });
 
+    const response = activities.map((activity) =>
+      ActivityResponse.fromModel(activity),
+    );
+
     if (cacheKey) {
-      await this.redisService.set(cacheKey, JSON.stringify(activities), 60);
+      await this.redisService.set(cacheKey, JSON.stringify(response), 60);
     }
 
-    return activities;
+    return response;
   }
 }

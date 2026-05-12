@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UserRepository } from '../repository/user.repository';
 import { UserRequest } from '../request/user.request';
 import { ApiException } from 'src/global/exceptions/api.exception';
@@ -11,12 +12,16 @@ import { UserResponse } from '../response/user.response';
 import { JWT_REFRESH_KEY_EXPIRES_IN } from 'src/global/constants';
 import { SocialUserRequest } from '../request/social-user.request';
 import { ResetPasswordRequest } from 'src/auth/request/reset-password.request';
+import { UpdateUserRequest } from '../request/update-user.request';
+import { ImageService } from 'src/image/service/image.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly redis: RedisService,
+    private readonly imageService: ImageService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   private readonly LOGGER = new Logger(UserService.name);
@@ -144,5 +149,53 @@ export class UserService {
     await this.userRepository.updatePassword(user.id, hashedPassword);
 
     await Promise.all([this.redis.del(tokenKey), this.redis.del(resetKey)]);
+  }
+
+  async update(request: UpdateUserRequest, id: string) {
+    const { image } = request;
+    const user = await this.findById(id);
+    if (!user) {
+      throw new ApiException(ErrorCode.USER_NOT_FOUND);
+    }
+
+    let newImage: string[] = [];
+    const imageRequest = {
+      id,
+      existingImages: user.image ? [user.image] : [],
+      urls: image ? [image] : [],
+      entity: 'user',
+    };
+    if (image !== '') {
+      newImage = await this.imageService.updateUserImages(imageRequest);
+      request.image = newImage.length > 0 ? newImage[0] : undefined;
+    } else {
+      await this.imageService.deleteUserImages([user.id], 'user');
+      request.image = null;
+    }
+    const updatedUser = await this.userRepository.update(
+      id,
+      UpdateUserRequest.toModel(request),
+    );
+    const sessionKey = RedisKey.user.session(id);
+    await this.redis.del(sessionKey);
+    const response = UserResponse.fromModel(updatedUser);
+
+    this.eventEmitter.emit('user.updated', response);
+
+    return response;
+  }
+
+  async deleteUser(id: string) {
+    const user = await this.findById(id);
+    if (!user) {
+      throw new ApiException(ErrorCode.USER_NOT_FOUND);
+    }
+
+    const isDeleted = await this.userRepository.delete(id);
+    if (isDeleted) {
+      await this.imageService.deleteUserImages([user.id], 'user');
+    }
+    const sessionKey = RedisKey.user.session(id);
+    await this.redis.del(sessionKey);
   }
 }

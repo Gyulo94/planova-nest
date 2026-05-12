@@ -3,6 +3,7 @@ import { ActivityService } from '../service/activity.service';
 import { ActivityRequest } from '../request/activity.request';
 import { CurrentUser } from 'src/global/decorators/current-user.decorator';
 import type { Payload } from 'src/global/types/payload';
+import { ActivityResponse } from '../response/activity.response';
 
 @Controller('activity')
 export class ActivityController {
@@ -12,7 +13,7 @@ export class ActivityController {
   async createActivity(
     @Body() request: ActivityRequest,
     @CurrentUser() user: Payload,
-  ) {
+  ): Promise<ActivityResponse> {
     if (!request.userId) {
       request.userId = user.id;
     }
@@ -24,7 +25,7 @@ export class ActivityController {
     @Param('workspaceId') workspaceId: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
-  ) {
+  ): Promise<ActivityResponse[]> {
     return this.activityService.findActivities({
       workspaceId,
       page: page ? Number(page) : undefined,
@@ -37,7 +38,7 @@ export class ActivityController {
     @Param('projectId') projectId: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
-  ) {
+  ): Promise<ActivityResponse[]> {
     return this.activityService.findActivities({
       projectId,
       page: page ? Number(page) : undefined,
@@ -50,7 +51,7 @@ export class ActivityController {
     @Param('taskId') taskId: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
-  ) {
+  ): Promise<ActivityResponse[]> {
     return this.activityService.findActivities({
       taskId,
       page: page ? Number(page) : undefined,

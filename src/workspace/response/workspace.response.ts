@@ -1,4 +1,5 @@
-import { WorkspaceWithImage } from 'src/global/types';
+import { Workspace } from '@prisma/client';
+import { WorkspacePayload } from 'src/global/types';
 
 export class WorkspaceResponse {
   id: string;
@@ -6,13 +7,16 @@ export class WorkspaceResponse {
   inviteCode: string | null;
   image?: string;
 
-  static fromModel(model: WorkspaceWithImage): WorkspaceResponse {
-    const { id, name, image } = model;
+  static fromModel(model: Workspace): WorkspaceResponse;
+  static fromModel(model: WorkspacePayload): WorkspaceResponse;
+  static fromModel(model: any): WorkspaceResponse {
     const response = new WorkspaceResponse();
-    response.id = id;
-    response.name = name;
+    response.id = model.id;
+    response.name = model.name;
     response.inviteCode = model.inviteCode;
-    response.image = image?.url ?? undefined;
+    if ('image' in model && model.image) {
+      response.image = model.image.url;
+    }
 
     return response;
   }

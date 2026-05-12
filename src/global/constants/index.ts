@@ -14,7 +14,9 @@ export const JWT_REFRESH_KEY_EXPIRES_IN = parseInt(
   process.env.JWT_REFRESH_KEY_EXPIRES_IN,
   10,
 );
+export const SOCKET_PATH = process.env.SOCKET_PATH;
 export const CLIENT_URL = process.env.CLIENT_URL;
+export const SERVER_URL = process.env.SERVER_URL;
 export const EMAIL_URL = process.env.EMAIL_URL;
 export const FILE_URL = process.env.FILE_URL;
 export const LOGO = process.env.LOGO;
@@ -24,6 +26,7 @@ export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 export const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 export const KAKAO_CLIENT_ID = process.env.KAKAO_CLIENT_ID;
 export const KAKAO_CLIENT_SECRET = process.env.KAKAO_CLIENT_SECRET;
+export const SOCIAL_CALLBACK_URL = process.env.SOCIAL_CALLBACK_URL;
 
 export const DEFAULT_TASK_LABELS = [
   { name: '기획', bgColor: '#e0f2fe', textColor: '#0c4a6e' },

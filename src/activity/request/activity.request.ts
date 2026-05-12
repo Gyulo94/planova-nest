@@ -1,4 +1,5 @@
-import { IsString, IsOptional, IsUUID, IsObject } from 'class-validator';
+import { Prisma } from '@prisma/client';
+import { IsString, IsOptional, IsObject } from 'class-validator';
 
 export class ActivityRequest {
   @IsString()
@@ -9,20 +10,36 @@ export class ActivityRequest {
 
   @IsOptional()
   @IsObject()
-  metadata?: any;
+  metadata?: object;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   workspaceId?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   projectId?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   taskId?: string;
 
-  @IsUUID()
+  @IsString()
   userId: string;
+
+  static toModel(request: ActivityRequest): Prisma.ActivityCreateInput {
+    return {
+      action: request.action,
+      description: request.description,
+      metadata: request.metadata,
+      workspaceId: request.workspaceId,
+      projectId: request.projectId,
+      taskId: request.taskId,
+      user: {
+        connect: {
+          id: request.userId,
+        },
+      },
+    };
+  }
 }

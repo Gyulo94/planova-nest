@@ -6,6 +6,7 @@ declare module NodeJS {
     APP_NAME: string;
     REDIS_HOST: string;
     REDIS_PORT: string;
+    SERVER_URL: string;
     JWT_SECRET_KEY: string;
     JWT_REFRESH_KEY: string;
     JWT_SECRET_KEY_EXPIRES_IN: string;
@@ -20,5 +21,6 @@ declare module NodeJS {
     GOOGLE_CLIENT_SECRET: string;
     KAKAO_CLIENT_ID: string;
     KAKAO_CLIENT_SECRET: string;
+    SOCIAL_CALLBACK_URL: string;
   }
 }

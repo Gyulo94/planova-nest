@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from 'src/global/prisma/prisma.service';
-import { ProjectWithImage } from 'src/global/types';
+import { PrismaService } from '../../global/prisma/prisma.service';
+import { ProjectPayload } from '../../global/types';
 
 @Injectable()
 export class ProjectRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(data: Prisma.ProjectCreateInput): Promise<ProjectWithImage> {
+  create(data: Prisma.ProjectCreateInput): Promise<ProjectPayload> {
     return this.prisma.project.create({
       data,
       include: {
@@ -16,7 +16,7 @@ export class ProjectRepository {
     });
   }
 
-  async findAllByWorkspaceId(workspaceId: string): Promise<ProjectWithImage[]> {
+  async findAllByWorkspaceId(workspaceId: string): Promise<ProjectPayload[]> {
     return this.prisma.project.findMany({
       where: {
         workspaceId,
@@ -27,7 +27,7 @@ export class ProjectRepository {
     });
   }
 
-  async findProjectById(id: string): Promise<ProjectWithImage | null> {
+  async findProjectById(id: string): Promise<ProjectPayload | null> {
     return this.prisma.project.findUnique({
       where: { id },
       include: { image: true },
@@ -37,7 +37,7 @@ export class ProjectRepository {
   update(
     projectId: string,
     data: Prisma.ProjectUpdateInput,
-  ): Promise<ProjectWithImage> {
+  ): Promise<ProjectPayload> {
     return this.prisma.project.update({
       where: { id: projectId },
       data,

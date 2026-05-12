@@ -13,6 +13,15 @@ import { WsAuthService } from 'src/global/ws/ws-auth.service';
 import { WsLoggerService } from 'src/global/ws/ws-logger.service';
 import { WsErrorService } from 'src/global/ws/ws-error.service';
 import { CLIENT_URL } from 'src/global/constants';
+import type {
+  Activity,
+  Epic,
+  Label,
+  Milestone,
+  ProjectMember,
+  Task,
+} from '@prisma/client';
+import { EpicService } from 'src/epic/service/epic.service';
 
 @WebSocketGateway({
   cors: {
@@ -28,6 +37,7 @@ export class TaskGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly wsAuthService: WsAuthService,
     private readonly wsLoggerService: WsLoggerService,
     private readonly wsErrorService: WsErrorService,
+    private readonly epicService: EpicService,
   ) {}
 
   async handleConnection(client: Socket) {
@@ -69,15 +79,15 @@ export class TaskGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.to(`project:${projectId}`).emit('task:reordered', updates);
   }
 
-  emitTaskCreated(projectId: string, task: any) {
+  emitTaskCreated(projectId: string, task: Task) {
     this.server.to(`project:${projectId}`).emit('task:created', task);
   }
 
-  emitActivityCreated(projectId: string, activity: any) {
+  emitActivityCreated(projectId: string, activity: Activity) {
     this.server.to(`project:${projectId}`).emit('activity:created', activity);
   }
 
-  emitTaskUpdated(projectId: string, task: any) {
+  emitTaskUpdated(projectId: string, task: Task) {
     this.server.to(`project:${projectId}`).emit('task:updated', task);
   }
 
@@ -86,14 +96,17 @@ export class TaskGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @OnEvent('activity.created')
-  handleActivityCreated(activity: any) {
+  handleActivityCreated(activity: Activity) {
     if (activity.projectId) {
       this.emitActivityCreated(activity.projectId, activity);
     }
   }
 
   @OnEvent('project.member.invited')
-  handleProjectMemberInvited(payload: { projectId: string; members: any[] }) {
+  handleProjectMemberInvited(payload: {
+    projectId: string;
+    members: ProjectMember[];
+  }) {
     this.server
       .to(`project:${payload.projectId}`)
       .emit('project:member_invited', payload.members);
@@ -107,22 +120,22 @@ export class TaskGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @OnEvent('task.created')
-  handleTaskCreated(payload: { projectId: string; task: any }) {
-    this.emitTaskCreated(payload.projectId, payload.task);
+  handleTaskCreated(payload: { projectId: string; task: Task }) {
+    this.emitTaskCreated(payload.projectId, payload.task as Task);
   }
 
   @OnEvent('task.updated')
-  handleTaskUpdated(payload: { projectId: string; task: any }) {
-    this.emitTaskUpdated(payload.projectId, payload.task);
+  handleTaskUpdated(payload: { projectId: string; task: Task }) {
+    this.emitTaskUpdated(payload.projectId, payload.task as Task);
   }
 
   @OnEvent('task.deleted')
   handleTaskDeleted(payload: { projectId: string; taskId: string }) {
-    this.emitTaskDeleted(payload.projectId, payload.taskId);
+    this.emitTaskDeleted(payload.projectId, payload.taskId!);
   }
 
   @OnEvent('milestone.created')
-  handleMilestoneCreated(payload: { projectId: string; milestone: any }) {
+  handleMilestoneCreated(payload: { projectId: string; milestone: Milestone }) {
     if (payload.projectId) {
       this.server
         .to(`project:${payload.projectId}`)
@@ -131,7 +144,7 @@ export class TaskGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @OnEvent('milestone.updated')
-  handleMilestoneUpdated(payload: { projectId: string; milestone: any }) {
+  handleMilestoneUpdated(payload: { projectId: string; milestone: Milestone }) {
     if (payload.projectId) {
       this.server
         .to(`project:${payload.projectId}`)
@@ -149,7 +162,7 @@ export class TaskGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @OnEvent('epic.created')
-  handleEpicCreated(payload: { projectId: string; epic: any }) {
+  handleEpicCreated(payload: { projectId: string; epic: Epic }) {
     if (payload.projectId) {
       this.server
         .to(`project:${payload.projectId}`)
@@ -158,7 +171,7 @@ export class TaskGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @OnEvent('epic.updated')
-  handleEpicUpdated(payload: { projectId: string; epic: any }) {
+  handleEpicUpdated(payload: { projectId: string; epic: Epic }) {
     if (payload.projectId) {
       this.server
         .to(`project:${payload.projectId}`)
@@ -176,11 +189,22 @@ export class TaskGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @OnEvent('label.created')
-  handleLabelCreated(payload: { projectId: string; label: any }) {
+  handleLabelCreated(payload: { projectId: string; label: Label }) {
     if (payload.projectId) {
       this.server
         .to(`project:${payload.projectId}`)
         .emit('label:created', payload.label);
+    }
+  }
+
+  @OnEvent(['task.created', 'task.updated', 'task.deleted', 'task.reordered'])
+  async handleTaskEventForEpics(payload: { projectId: string }) {
+    const { projectId } = payload;
+    if (!projectId) return;
+
+    const epics = await this.epicService.findAllByProjectId(projectId);
+    for (const epic of epics) {
+      this.server.to(`project:${projectId}`).emit('epic:updated', epic);
     }
   }
 }

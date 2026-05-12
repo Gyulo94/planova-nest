@@ -8,12 +8,12 @@ import {
   Put,
 } from '@nestjs/common';
 import { CommentService } from '../service/comment.service';
-import { CreateCommentRequest } from '../request/create-comment.request';
-import { UpdateCommentRequest } from '../request/update-comment.request';
+import { CommentRequest } from '../request/comment.request';
 import { CurrentUser } from 'src/global/decorators/current-user.decorator';
 import { Message } from 'src/global/decorators/message.decorator';
 import { ResponseMessage } from 'src/global/enums/response-message.enum';
 import type { Payload } from 'src/global/types';
+import { CommentResponse } from '../response/comment.response';
 
 @Controller('comments')
 export class CommentController {
@@ -23,13 +23,13 @@ export class CommentController {
   @Post()
   async create(
     @CurrentUser() user: Payload,
-    @Body() request: CreateCommentRequest,
-  ) {
+    @Body() request: CommentRequest,
+  ): Promise<CommentResponse> {
     return this.commentService.create(user.id, request);
   }
 
   @Get('task/:taskId')
-  async findByTaskId(@Param('taskId') taskId: string) {
+  async findByTaskId(@Param('taskId') taskId: string): Promise<CommentResponse[]> {
     return this.commentService.findByTaskId(taskId);
   }
 
@@ -38,14 +38,17 @@ export class CommentController {
   async update(
     @CurrentUser() user: Payload,
     @Param('id') id: string,
-    @Body() request: UpdateCommentRequest,
-  ) {
+    @Body() request: CommentRequest,
+  ): Promise<CommentResponse> {
     return this.commentService.update(user.id, id, request);
   }
 
   @Message(ResponseMessage.DELETE_COMMENT_SUCCESS)
   @Delete(':id')
-  async delete(@CurrentUser() user: Payload, @Param('id') id: string) {
+  async delete(
+    @CurrentUser() user: Payload,
+    @Param('id') id: string,
+  ): Promise<{ id: string }> {
     return this.commentService.delete(user.id, id);
   }
 }

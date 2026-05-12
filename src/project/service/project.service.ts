@@ -2,17 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProjectRequest } from '../request/project.request';
 import { ProjectRepository } from '../repository/project.repository';
-import { ProjectWithImage } from 'src/global/types';
-import { ImageResponse } from 'src/image/response/image.response';
-import { ImageRequest } from 'src/image/request/image.request';
-import { ImageService } from 'src/image/service/image.service';
+import { ProjectWithImage } from '../../global/types';
+import { ImageResponse } from '../../image/response/image.response';
+import { ImageRequest } from '../../image/request/image.request';
+import { ImageService } from '../../image/service/image.service';
 import { ProjectResponse } from '../response/project.response';
-import { ProjectMemberService } from 'src/project-member/service/project-member.service';
-import { WorkspaceMemberService } from 'src/workspace-member/service/workspace-member.service';
-import { ApiException } from 'src/global/exceptions/api.exception';
-import { ErrorCode } from 'src/global/enums/error-code.enum';
-import { LabelService } from 'src/label/service/label.service';
-import { ActivityService } from 'src/activity/service/activity.service';
+import { ProjectMemberService } from '../../project-member/service/project-member.service';
+import { WorkspaceMemberService } from '../../workspace-member/service/workspace-member.service';
+import { ApiException } from '../../global/exceptions/api.exception';
+import { ErrorCode } from '../../global/enums/error-code.enum';
+import { LabelService } from '../../label/service/label.service';
+import { ActivityService } from '../../activity/service/activity.service';
 
 @Injectable()
 export class ProjectService {

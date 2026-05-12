@@ -122,18 +122,16 @@ export class ProjectMemberService {
     projectId: string,
     userId: string,
   ): Promise<boolean> {
-    // 프로젝트 정보 및 워크스페이스 소유자 정보 조회
-    const project = await this.projectMemberRepository.getProjectWithWorkspace(projectId);
+    const project =
+      await this.projectMemberRepository.getProjectWithWorkspace(projectId);
     if (!project) {
       throw new ApiException(ErrorCode.PROJECT_NOT_FOUND);
     }
 
-    // 1. 워크스페이스 소유자인 경우 통과
     if (project.workspace.ownerId === userId) {
       return true;
     }
 
-    // 2. 프로젝트 멤버 권한 확인 (OWNER 또는 ADMIN)
     const projectMembers =
       await this.projectMemberRepository.findProjectMembers(projectId);
     const member = projectMembers.find((m) => m.userId === userId);

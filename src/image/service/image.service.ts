@@ -184,8 +184,78 @@ export class ImageService {
     }
   }
 
-  async findImageUrlsByModelId(entityId: string, entity: string): Promise<string[]> {
-    const images = await this.imageRepository.findAllByModelId([entityId], entity);
+  async findImageUrlsByModelId(
+    entityId: string,
+    entity: string,
+  ): Promise<string[]> {
+    const images = await this.imageRepository.findAllByModelId(
+      [entityId],
+      entity,
+    );
     return images.map((image) => image.url);
+  }
+
+  async updateUserImages(request: ImageRequest): Promise<string[]> {
+    const { id, urls, existingImages, entity } = request;
+    this.LOGGER.log(
+      `--------------------이미지 수정 서비스 실행--------------------`,
+    );
+
+    const requestObj = {
+      id,
+      images: urls,
+      existingImages,
+      entity,
+    };
+
+    try {
+      this.LOGGER.log(`1. 이미지 수정 요청 전송 중`);
+      const res = await firstValueFrom(
+        this.httpService.put(
+          `${FILE_URL}/images/${this.SERVICE_NAME}/update`,
+          requestObj,
+        ),
+      );
+      this.LOGGER.log(`2. 이미지 수정 요청 완료`);
+      const response = res.data.body.images ?? [];
+      this.LOGGER.log(`3. 이미지들 변환 완료`);
+      this.LOGGER.log(
+        `--------------------이미지 수정 서비스 종료--------------------`,
+      );
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async deleteUserImages(
+    entityIds: string[],
+    entity: string,
+  ): Promise<boolean> {
+    this.LOGGER.log(
+      `--------------------이미지 삭제 서비스 실행--------------------`,
+    );
+    const requestObj = {
+      ids: entityIds,
+      serviceName: this.SERVICE_NAME,
+      entity,
+    };
+
+    try {
+      this.LOGGER.log(`1. 이미지 삭제 요청 전송 중`);
+      const response = await firstValueFrom(
+        this.httpService.delete<boolean>(
+          `${FILE_URL}/images/${this.SERVICE_NAME}/delete`,
+          { data: requestObj },
+        ),
+      );
+
+      this.LOGGER.log(
+        `--------------------이미지 삭제 서비스 종료--------------------`,
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }
 }

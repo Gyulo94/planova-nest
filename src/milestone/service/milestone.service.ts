@@ -53,18 +53,19 @@ export class MilestoneService {
       await this.milestoneRepository.findAllByProjectId(projectId);
 
     return milestones.map((milestone) => {
-      const totalTasks = milestone.Task.length;
-      const completedTasks = milestone.Task.filter(
-        (t) => t.status === 'DONE',
-      ).length;
+      const totalEpics = milestone.epics.length;
       const progress =
-        totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+        totalEpics > 0
+          ? Math.round(
+              milestone.epics.reduce((sum, e) => sum + e.progress, 0) /
+                totalEpics,
+            )
+          : 0;
 
       return {
         ...milestone,
         progress,
-        completedTasks,
-        taskCount: totalTasks,
+        epicCount: totalEpics,
       };
     });
   }
@@ -73,18 +74,18 @@ export class MilestoneService {
     const milestone = await this.milestoneRepository.findById(id);
     if (!milestone) throw new NotFoundException('Milestone not found');
 
-    const totalTasks = milestone.Task.length;
-    const completedTasks = milestone.Task.filter(
-      (t) => t.status === 'DONE',
-    ).length;
+    const totalEpics = milestone.epics.length;
     const progress =
-      totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+      totalEpics > 0
+        ? Math.round(
+            milestone.epics.reduce((sum, e) => sum + e.progress, 0) / totalEpics,
+          )
+        : 0;
 
     return {
       ...milestone,
       progress,
-      completedTasks,
-      taskCount: totalTasks,
+      epicCount: totalEpics,
     };
   }
 

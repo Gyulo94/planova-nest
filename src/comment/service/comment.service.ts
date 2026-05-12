@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { CommentRepository } from '../repository/comment.repository';
-import { CreateCommentRequest } from '../request/create-comment.request';
-import { UpdateCommentRequest } from '../request/update-comment.request';
+import { CommentRequest } from '../request/comment.request';
 import { ActivityService } from 'src/activity/service/activity.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApiException } from 'src/global/exceptions/api.exception';
 import { ErrorCode } from 'src/global/enums/error-code.enum';
 import { Transactional } from 'src/global/decorators/transactional.decorator';
+import { CommentResponse } from '../response/comment.response';
 
 @Injectable()
 export class CommentService {
@@ -17,10 +17,12 @@ export class CommentService {
   ) {}
 
   @Transactional()
-  async create(userId: string, request: CreateCommentRequest) {
+  async create(
+    userId: string,
+    request: CommentRequest,
+  ): Promise<CommentResponse> {
     const comment = await this.commentRepository.create({
-      content: request.content,
-      taskId: request.taskId,
+      ...CommentRequest.toModel(request),
       userId,
     });
 
@@ -28,7 +30,7 @@ export class CommentService {
     if (!commentWithTask) {
       throw new ApiException(ErrorCode.COMMENT_NOT_FOUND);
     }
-    
+
     await this.activityService.createActivity({
       action: 'COMMENT_CREATE',
       description: `작업 '${commentWithTask.task.title}'에 댓글을 남겼습니다.`,
@@ -43,11 +45,17 @@ export class CommentService {
       comment,
     });
 
-    return comment;
+    const response = CommentResponse.fromModel(comment);
+
+    return response;
   }
 
   @Transactional()
-  async update(userId: string, id: string, request: UpdateCommentRequest) {
+  async update(
+    userId: string,
+    id: string,
+    request: CommentRequest,
+  ): Promise<CommentResponse> {
     const comment = await this.commentRepository.findById(id);
     if (!comment) {
       throw new ApiException(ErrorCode.COMMENT_NOT_FOUND);
@@ -57,18 +65,23 @@ export class CommentService {
       throw new ApiException(ErrorCode.FORBIDDEN);
     }
 
-    const updatedComment = await this.commentRepository.update(id, request.content);
+    const updatedComment = await this.commentRepository.update(
+      id,
+      request.content,
+    );
 
     this.eventEmitter.emit('comment.updated', {
       projectId: comment.task.projectId,
       comment: updatedComment,
     });
 
-    return updatedComment;
+    const response = CommentResponse.fromModel(updatedComment);
+
+    return response;
   }
 
   @Transactional()
-  async delete(userId: string, id: string) {
+  async delete(userId: string, id: string): Promise<{ id: string }> {
     const comment = await this.commentRepository.findById(id);
     if (!comment) {
       throw new ApiException(ErrorCode.COMMENT_NOT_FOUND);
@@ -88,7 +101,13 @@ export class CommentService {
     return { id };
   }
 
-  async findByTaskId(taskId: string) {
-    return this.commentRepository.findByTaskId(taskId);
+  async findByTaskId(taskId: string): Promise<CommentResponse[]> {
+    const comments = await this.commentRepository.findByTaskId(taskId);
+
+    const response = comments.map((comment) =>
+      CommentResponse.fromModel(comment),
+    );
+
+    return response;
   }
 }

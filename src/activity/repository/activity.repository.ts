@@ -1,14 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/global/prisma/prisma.service';
+import { ActivityPayload } from 'src/global/types';
 
 @Injectable()
 export class ActivityRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: Prisma.ActivityUncheckedCreateInput) {
+  async create(data: Prisma.ActivityCreateInput): Promise<ActivityPayload> {
     return this.prisma.activity.create({
       data,
+      include: {
+        user: true,
+      },
     });
   }
 
@@ -19,7 +23,7 @@ export class ActivityRepository {
     userId?: string;
     skip?: number;
     take?: number;
-  }) {
+  }): Promise<ActivityPayload[]> {
     const { workspaceId, projectId, taskId, userId, skip, take } = params;
     return this.prisma.activity.findMany({
       where: {
@@ -29,14 +33,7 @@ export class ActivityRepository {
         userId,
       },
       include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            image: true,
-          },
-        },
+        user: true,
       },
       orderBy: {
         createdAt: 'desc',
@@ -45,16 +42,20 @@ export class ActivityRepository {
       take,
     });
   }
+
   async findLastActivity(params: {
     taskId?: string;
     userId: string;
     action: string;
-  }) {
+  }): Promise<ActivityPayload | null> {
     return this.prisma.activity.findFirst({
       where: {
         taskId: params.taskId,
         userId: params.userId,
         action: params.action,
+      },
+      include: {
+        user: true,
       },
       orderBy: {
         createdAt: 'desc',
