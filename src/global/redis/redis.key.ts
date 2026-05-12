@@ -11,6 +11,7 @@ export const RedisKey = {
   },
   login: {
     refreshToken: (userId: string) => `${PREFIX}:RT:${userId}`,
+    oldRefreshToken: (userId: string) => `${PREFIX}:RT_OLD:${userId}`,
   },
   resetPassword: {
     email: (email: string) => `${PREFIX}:reset:${email}`,

@@ -43,10 +43,14 @@ export class AuthService {
   async login(user: User): Promise<TokenResponse> {
     const payload: Payload = { id: user.id };
     const refreshKey = RedisKey.login.refreshToken(user.id);
+    const oldRefreshKey = RedisKey.login.oldRefreshToken(user.id);
     const sessionKey = RedisKey.user.session(user.id);
 
-    await this.redis.del(refreshKey);
-    await this.redis.del(sessionKey);
+    await Promise.all([
+      this.redis.del(refreshKey),
+      this.redis.del(oldRefreshKey),
+      this.redis.del(sessionKey),
+    ]);
 
     const tokens = await this.tokenService.generateTokens(payload);
     const sessionData = UserResponse.fromModel(user);
@@ -84,10 +88,18 @@ export class AuthService {
       });
 
     const refreshKey = RedisKey.login.refreshToken(payload.id);
+    const oldRefreshKey = RedisKey.login.oldRefreshToken(payload.id);
     const sessionKey = RedisKey.user.session(payload.id);
 
-    const storedRefreshToken = await this.redis.get(refreshKey);
-    if (refreshToken !== storedRefreshToken) {
+    const [storedRefreshToken, storedOldRefreshToken] = await Promise.all([
+      this.redis.get(refreshKey),
+      this.redis.get(oldRefreshKey),
+    ]);
+
+    if (
+      refreshToken !== storedRefreshToken &&
+      refreshToken !== storedOldRefreshToken
+    ) {
       this.LOGGER.warn(`리프레시 토큰 불일치 - User ID: ${payload.id}`);
       throw new ApiException(ErrorCode.INVALID_REFRESH_TOKEN);
     }
@@ -97,7 +109,7 @@ export class AuthService {
 
     const newTokens = await this.tokenService.generateTokens({ id: user.id });
 
-    await Promise.all([
+    const promises: Promise<any>[] = [
       this.redis.set(
         refreshKey,
         newTokens.refreshToken,
@@ -108,7 +120,13 @@ export class AuthService {
         JSON.stringify(UserResponse.fromModel(user)),
         JWT_REFRESH_KEY_EXPIRES_IN,
       ),
-    ]);
+    ];
+
+    if (storedRefreshToken) {
+      promises.push(this.redis.set(oldRefreshKey, storedRefreshToken, 15));
+    }
+
+    await Promise.all(promises);
 
     return newTokens;
   }
@@ -134,6 +152,7 @@ export class AuthService {
     if (!refreshToken) return;
 
     const getRefreshKey = (id: string) => RedisKey.login.refreshToken(id);
+    const getOldRefreshKey = (id: string) => RedisKey.login.oldRefreshToken(id);
     const getSessionKey = (id: string) => RedisKey.user.session(id);
 
     let payload: Payload | null = null;
@@ -149,6 +168,7 @@ export class AuthService {
     if (payload?.id) {
       await Promise.all([
         this.redis.del(getRefreshKey(payload.id)),
+        this.redis.del(getOldRefreshKey(payload.id)),
         this.redis.del(getSessionKey(payload.id)),
       ]);
     }
