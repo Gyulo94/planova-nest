@@ -110,7 +110,6 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
-    await this.authService.logout(req);
     clearCookies(res);
   }
 

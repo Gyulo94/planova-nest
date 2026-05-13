@@ -87,47 +87,10 @@ export class AuthService {
         throw new ApiException(ErrorCode.INVALID_REFRESH_TOKEN);
       });
 
-    const refreshKey = RedisKey.login.refreshToken(payload.id);
-    const oldRefreshKey = RedisKey.login.oldRefreshToken(payload.id);
-    const sessionKey = RedisKey.user.session(payload.id);
-
-    const [storedRefreshToken, storedOldRefreshToken] = await Promise.all([
-      this.redis.get(refreshKey),
-      this.redis.get(oldRefreshKey),
-    ]);
-
-    if (
-      refreshToken !== storedRefreshToken &&
-      refreshToken !== storedOldRefreshToken
-    ) {
-      this.LOGGER.warn(`리프레시 토큰 불일치 - User ID: ${payload.id}`);
-      throw new ApiException(ErrorCode.INVALID_REFRESH_TOKEN);
-    }
-
     const user = await this.userService.findById(payload.id);
     if (!user) throw new ApiException(ErrorCode.USER_NOT_FOUND);
 
     const newTokens = await this.tokenService.generateTokens({ id: user.id });
-
-    const promises: Promise<any>[] = [
-      this.redis.set(
-        refreshKey,
-        newTokens.refreshToken,
-        JWT_REFRESH_KEY_EXPIRES_IN,
-      ),
-      this.redis.set(
-        sessionKey,
-        JSON.stringify(UserResponse.fromModel(user)),
-        JWT_REFRESH_KEY_EXPIRES_IN,
-      ),
-    ];
-
-    if (storedRefreshToken) {
-      promises.push(this.redis.set(oldRefreshKey, storedRefreshToken, 15));
-    }
-
-    await Promise.all(promises);
-
     return newTokens;
   }
 
@@ -145,32 +108,5 @@ export class AuthService {
     const user = socialUser as User;
 
     return this.login(user);
-  }
-
-  async logout(req: Request): Promise<void> {
-    const refreshToken = req.cookies?.['refreshToken'];
-    if (!refreshToken) return;
-
-    const getRefreshKey = (id: string) => RedisKey.login.refreshToken(id);
-    const getOldRefreshKey = (id: string) => RedisKey.login.oldRefreshToken(id);
-    const getSessionKey = (id: string) => RedisKey.user.session(id);
-
-    let payload: Payload | null = null;
-
-    try {
-      payload = await this.jwtService.verifyAsync<Payload>(refreshToken, {
-        secret: JWT_REFRESH_KEY,
-      });
-    } catch {
-      payload = this.jwtService.decode(refreshToken) as Payload | null;
-    }
-
-    if (payload?.id) {
-      await Promise.all([
-        this.redis.del(getRefreshKey(payload.id)),
-        this.redis.del(getOldRefreshKey(payload.id)),
-        this.redis.del(getSessionKey(payload.id)),
-      ]);
-    }
   }
 }
