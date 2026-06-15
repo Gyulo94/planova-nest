@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { IsEmail, IsNotEmpty } from 'class-validator';
 
 export class ResetPasswordRequest {
@@ -9,5 +10,16 @@ export class ResetPasswordRequest {
   token: string;
 
   @IsNotEmpty()
-  password: string;
+  newPassword: string;
+
+  static toEntity(userId: string, newPassword: string): Prisma.UserUpdateArgs {
+    return {
+      where: {
+        id: userId,
+      },
+      data: {
+        password: newPassword,
+      },
+    };
+  }
 }

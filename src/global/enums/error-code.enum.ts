@@ -12,6 +12,8 @@ export enum ErrorCode {
   EMAIL_NOT_FOUND = 'USER_002',
   RESET_PASSWORD_NOT_ALLOWED_SOCIAL_USER = 'USER_003',
   USER_NOT_FOUND = 'USER_004',
+  VERIFICATION_TOKEN_INVALID = 'USER_005',
+  VERIFICATION_FAILED = 'USER_006',
 
   // 인증 관련 에러
   INVALID_EMAIL_OR_PASSWORD = 'AUTH_001',
@@ -85,6 +87,14 @@ export const ErrorCodeMap: Record<
   [ErrorCode.USER_NOT_FOUND]: {
     status: HttpStatus.BAD_REQUEST,
     message: '유저를 찾을 수 없습니다.',
+  },
+  [ErrorCode.VERIFICATION_TOKEN_INVALID]: {
+    status: HttpStatus.BAD_REQUEST,
+    message: '유효하지 않거나 만료된 인증 토큰입니다.',
+  },
+  [ErrorCode.VERIFICATION_FAILED]: {
+    status: HttpStatus.BAD_REQUEST,
+    message: '인증에 실패했습니다.',
   },
 
   // 인증 관련 에러

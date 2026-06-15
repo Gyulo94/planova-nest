@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UserRepository } from '../repository/user.repository';
-import { UserRequest } from '../request/user.request';
 import { ApiException } from 'src/global/exceptions/api.exception';
 import { ErrorCode } from 'src/global/enums/error-code.enum';
 import { RedisService } from 'src/global/redis/serivce/redis.service';
@@ -14,6 +13,8 @@ import { SocialUserRequest } from '../request/social-user.request';
 import { ResetPasswordRequest } from 'src/auth/request/reset-password.request';
 import { UpdateUserRequest } from '../request/update-user.request';
 import { ImageService } from 'src/image/service/image.service';
+import { CreateUserRequest } from '../request/create-user.request';
+import { EmailService } from 'src/email/service/email.service';
 
 @Injectable()
 export class UserService {
@@ -22,6 +23,7 @@ export class UserService {
     private readonly redis: RedisService,
     private readonly imageService: ImageService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly emailService: EmailService,
   ) {}
 
   private readonly LOGGER = new Logger(UserService.name);
@@ -31,50 +33,29 @@ export class UserService {
     return response;
   }
 
-  async register(request: UserRequest): Promise<void> {
-    await this.validateEmailNotExists(request.email);
-
-    const hashedPassword = bcrypt.hashSync(request.password!, 10);
-
-    const userInfoForRedis = {
-      ...request,
-      password: hashedPassword,
-    };
-
-    await this.redis.set(
-      RedisKey.register.userInfoByEmail(request.email),
-      JSON.stringify(userInfoForRedis),
-      15 * 60,
-    );
+  async register(request: CreateUserRequest) {
+    const existingUser = await this.findByEmail(request.email);
+    if (existingUser) {
+      throw new ApiException(ErrorCode.ALREADY_EXIST_EMAIL);
+    }
+    this.emailService.sendVerificationEmail({
+      email: request.email,
+      type: 'register',
+      payload: request,
+    });
   }
 
-  async completeRegister(email: string, token: string): Promise<User | null> {
-    const userInfoStr = await this.redis.get(
-      RedisKey.register.userInfoByEmail(email),
+  async create(request: CreateUserRequest): Promise<User> {
+    const hashedPassword = await bcrypt.hash(request.password, 10);
+    const response = await this.userRepository.create(
+      CreateUserRequest.toEntity(request, hashedPassword),
     );
-
-    if (!userInfoStr) {
-      throw new ApiException(ErrorCode.FORBIDDEN);
-    }
-
-    const userInfo = JSON.parse(userInfoStr);
-
-    await this.validateEmailNotExists(userInfo.email);
-    await this.userRepository.create(UserRequest.toModel(userInfo));
-
-    await Promise.all([
-      this.redis.del(RedisKey.register.userInfoByEmail(email)),
-      this.redis.del(RedisKey.register.email(email)),
-      this.redis.del(token),
-    ]);
-
-    const response = await this.userRepository.findByEmail(email);
-
     return response;
   }
 
   async findById(id: string): Promise<User | null> {
-    return this.userRepository.findById(id);
+    const response = await this.userRepository.findById(id);
+    return response;
   }
 
   async getSession(id: string): Promise<UserResponse | null> {
@@ -103,12 +84,6 @@ export class UserService {
     return session;
   }
 
-  private async validateEmailNotExists(email: string): Promise<void> {
-    if (await this.findByEmail(email)) {
-      throw new ApiException(ErrorCode.ALREADY_EXIST_EMAIL);
-    }
-  }
-
   async findOrCreateSocialUser(request: SocialUserRequest): Promise<User> {
     const { email, provider } = request;
 
@@ -131,24 +106,19 @@ export class UserService {
     );
   }
 
-  async resetPassword(request: ResetPasswordRequest) {
-    const user = await this.findByEmail(request.email);
+  async resetPassword(request: ResetPasswordRequest): Promise<void> {
+    const { email, token, newPassword } = request;
+    const redisKey = RedisKey.verificationReset(token);
+    const user = await this.findByEmail(email);
     if (!user) {
-      throw new ApiException(ErrorCode.EMAIL_NOT_FOUND);
+      throw new ApiException(ErrorCode.USER_NOT_FOUND);
     }
 
-    const tokenKey = RedisKey.token(request.token);
-    const resetKey = RedisKey.resetPassword.email(request.email);
-
-    if (user.provider !== 'LOCAL') {
-      throw new ApiException(ErrorCode.RESET_PASSWORD_NOT_ALLOWED_SOCIAL_USER);
-    }
-
-    const hashedPassword = bcrypt.hashSync(request.password, 10);
-
-    await this.userRepository.updatePassword(user.id, hashedPassword);
-
-    await Promise.all([this.redis.del(tokenKey), this.redis.del(resetKey)]);
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.userRepository.resetPassword(
+      ResetPasswordRequest.toEntity(user.id, hashedPassword),
+    );
+    await this.redis.del(redisKey);
   }
 
   async update(request: UpdateUserRequest, id: string) {

@@ -9,7 +9,6 @@ import { GlobalModule } from './global/global.module';
 import { RequestMiddleware } from './global/middlewares/logger.middleware';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
-import { EmailModule } from './email/email.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { WorkspaceModule } from './workspace/workspace.module';
@@ -30,7 +29,6 @@ import { MilestoneModule } from './milestone/milestone.module';
     GlobalModule,
     AuthModule,
     UserModule,
-    EmailModule,
     WorkspaceModule,
     ImageModule,
     ProjectModule,
