@@ -165,6 +165,11 @@ export class AuthService {
     return { email };
   }
 
+  logout(userId: string): Promise<void> {
+    const redisKey = RedisKey.userRefreshToken(userId);
+    return this.redis.del(redisKey);
+  }
+
   async sendResetPasswordMail(email: string): Promise<void> {
     const existingUser = await this.userService.findByEmail(email);
     if (!existingUser) {

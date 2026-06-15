@@ -87,6 +87,8 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
+    const user = req.user as User;
+    await this.authService.logout(user.id);
     clearCookies(res);
   }
 
