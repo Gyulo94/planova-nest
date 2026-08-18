@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client';
-import transactionStorage from '../prisma/transaction.storage';
+import transactionStorage from 'src/prisma/transaction.storage';
 
 export interface TransactionOptions {
   maxWait?: number;

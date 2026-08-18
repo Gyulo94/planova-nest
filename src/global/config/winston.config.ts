@@ -1,7 +1,6 @@
 import { formatInTimeZone } from 'date-fns-tz';
 import { WinstonModule, utilities } from 'nest-winston';
 import winston from 'winston';
-import winstonDaily from 'winston-daily-rotate-file';
 import { APP_NAME, NODE_ENV } from '../constants';
 
 interface TimestampOptions {
@@ -26,17 +25,6 @@ const apeendTimestamp = winston.format((info, opts: unknown) => {
   }
   return info;
 });
-
-const dailyOptions = {
-  level: 'http',
-  datePattern: 'YYYY-MM-DD',
-  dirname: __dirname + '/../../../logs',
-  filename: `${APP_NAME}.%DATE%.log`,
-  maxFiles: 30,
-  zippedArchive: true,
-  colorize: true,
-  json: false,
-};
 
 export const winstonLogger = WinstonModule.createLogger({
   format: winston.format.combine(
@@ -66,6 +54,5 @@ export const winstonLogger = WinstonModule.createLogger({
       handleExceptions: true,
       handleRejections: true,
     }),
-    new winstonDaily(dailyOptions),
   ],
 });

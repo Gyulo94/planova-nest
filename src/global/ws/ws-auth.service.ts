@@ -1,27 +1,31 @@
-import { Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import * as cookieParser from 'cookie';
+import { Inject, Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
-import { JWT_SECRET_KEY } from '../constants';
-import type { Payload } from '../types';
 import { ApiException } from '../exceptions/api.exception';
 import { ErrorCode } from '../enums/error-code.enum';
+import type { Auth } from 'better-auth';
 
 @Injectable()
 export class WsAuthService {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(@Inject('BETTER_AUTH') private readonly auth: Auth) {}
 
-  authenticate(client: Socket): Payload {
-    const rawCookie = client.handshake.headers.cookie || '';
-    const cookies = cookieParser.parse(rawCookie);
-    const token = cookies['accessToken'];
+  async authenticate(client: Socket) {
+    const headers = new Headers();
+    const rawCookie = client.handshake.headers.cookie;
 
-    if (!token) {
-      throw new ApiException(ErrorCode.ACCESS_TOKEN_NOT_FOUND);
+    if (rawCookie) {
+      headers.set('cookie', rawCookie);
+    }
+    const session = await this.auth.api.getSession({
+      headers,
+    });
+
+    if (!session || !session.user) {
+      throw new ApiException(ErrorCode.UNAUTHORIZED);
     }
 
-    return this.jwtService.verify<Payload>(token, {
-      secret: JWT_SECRET_KEY,
-    });
+    client.data.user = session.user;
+    client.data.session = session.session;
+
+    return session;
   }
 }

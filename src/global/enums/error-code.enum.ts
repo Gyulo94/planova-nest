@@ -7,14 +7,6 @@ export enum ErrorCode {
   FORBIDDEN = 'COMMON_002',
   UNAUTHORIZED = 'COMMON_003',
 
-  // 회원 관련 에러
-  ALREADY_EXIST_EMAIL = 'USER_001',
-  EMAIL_NOT_FOUND = 'USER_002',
-  RESET_PASSWORD_NOT_ALLOWED_SOCIAL_USER = 'USER_003',
-  USER_NOT_FOUND = 'USER_004',
-  VERIFICATION_TOKEN_INVALID = 'USER_005',
-  VERIFICATION_FAILED = 'USER_006',
-
   // 인증 관련 에러
   INVALID_EMAIL_OR_PASSWORD = 'AUTH_001',
   ACCESS_TOKEN_NOT_FOUND = 'AUTH_002',
@@ -25,6 +17,9 @@ export enum ErrorCode {
   REFRESH_TOKEN_NOT_FOUND = 'AUTH_007',
   INVALID_REFRESH_TOKEN = 'AUTH_008',
 
+  // 사용자 관련 에러
+  USER_NOT_FOUND = 'USER_001',
+
   // 워크스페이스 관련 에러
   WORKSPACE_NOT_FOUND = 'WORKSPACE_001',
   CAN_NOT_DELETE_ONLY_MY_OWN_WORKSPACE = 'WORKSPACE_002',
@@ -33,12 +28,14 @@ export enum ErrorCode {
   WORKSPACE_MEMBER_NOT_FOUND = 'WORKSPACE_MEMBER_001',
   WORKSPACE_MEMBER_ALREADY_EXISTS = 'WORKSPACE_MEMBER_002',
   INVALID_INVITE_CODE = 'WORKSPACE_MEMBER_003',
+  WORKSPACE_MEMBER_ROLE_FORBIDDEN = 'WORKSPACE_MEMBER_004',
 
   // 프로젝트 관련 에러
   PROJECT_NOT_FOUND = 'PROJECT_001',
 
   // 프로젝트 멤버 관련 에러
   PROJECT_MEMBER_NOT_FOUND = 'PROJECT_MEMBER_001',
+  PROJECT_MEMBER_ROLE_FORBIDDEN = 'PROJECT_MEMBER_002',
 
   // 하위작업 관련 에러
   SUBTASK_NOT_FOUND = 'SUBTASK_001',
@@ -69,32 +66,6 @@ export const ErrorCodeMap: Record<
   [ErrorCode.UNAUTHORIZED]: {
     status: HttpStatus.UNAUTHORIZED,
     message: '인증이 필요합니다.',
-  },
-
-  // 회원 관련 에러
-  [ErrorCode.ALREADY_EXIST_EMAIL]: {
-    status: HttpStatus.BAD_REQUEST,
-    message: '이미 존재하는 이메일입니다.',
-  },
-  [ErrorCode.EMAIL_NOT_FOUND]: {
-    status: HttpStatus.BAD_REQUEST,
-    message: '가입되지 않은 이메일입니다.',
-  },
-  [ErrorCode.RESET_PASSWORD_NOT_ALLOWED_SOCIAL_USER]: {
-    status: HttpStatus.BAD_REQUEST,
-    message: '소셜 로그인한 사용자는 비밀번호 재설정을 할 수 없습니다.',
-  },
-  [ErrorCode.USER_NOT_FOUND]: {
-    status: HttpStatus.BAD_REQUEST,
-    message: '유저를 찾을 수 없습니다.',
-  },
-  [ErrorCode.VERIFICATION_TOKEN_INVALID]: {
-    status: HttpStatus.BAD_REQUEST,
-    message: '유효하지 않거나 만료된 인증 토큰입니다.',
-  },
-  [ErrorCode.VERIFICATION_FAILED]: {
-    status: HttpStatus.BAD_REQUEST,
-    message: '인증에 실패했습니다.',
   },
 
   // 인증 관련 에러
@@ -131,6 +102,12 @@ export const ErrorCodeMap: Record<
     message: '유효하지 않거나 만료된 리프레시 토큰입니다.',
   },
 
+  // 사용자 관련 에러
+  [ErrorCode.USER_NOT_FOUND]: {
+    status: HttpStatus.BAD_REQUEST,
+    message: '사용자를 찾을 수 없습니다.',
+  },
+
   // 워크스페이스 관련 에러
   [ErrorCode.WORKSPACE_NOT_FOUND]: {
     status: HttpStatus.BAD_REQUEST,
@@ -154,6 +131,10 @@ export const ErrorCodeMap: Record<
     status: HttpStatus.BAD_REQUEST,
     message: '유효하지 않은 초대 코드입니다.',
   },
+  [ErrorCode.WORKSPACE_MEMBER_ROLE_FORBIDDEN]: {
+    status: HttpStatus.FORBIDDEN,
+    message: '해당 작업을 수행할 권한이 없습니다.',
+  },
 
   // 프로젝트 관련 에러
   [ErrorCode.PROJECT_NOT_FOUND]: {
@@ -165,6 +146,10 @@ export const ErrorCodeMap: Record<
   [ErrorCode.PROJECT_MEMBER_NOT_FOUND]: {
     status: HttpStatus.BAD_REQUEST,
     message: '프로젝트 멤버를 찾을 수 없습니다.',
+  },
+  [ErrorCode.PROJECT_MEMBER_ROLE_FORBIDDEN]: {
+    status: HttpStatus.FORBIDDEN,
+    message: '해당 작업을 수행할 권한이 없습니다.',
   },
 
   // 하위작업 관련 에러

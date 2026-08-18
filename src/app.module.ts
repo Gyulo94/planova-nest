@@ -6,23 +6,23 @@ import {
 } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { GlobalModule } from './global/global.module';
-import { RequestMiddleware } from './global/middlewares/logger.middleware';
-import { AuthModule } from './auth/auth.module';
-import { UserModule } from './user/user.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { AuthModule as BetterAuthModule } from '@thallesp/nestjs-better-auth';
+import { UserModule } from './modules/user/user.module';
 import { APP_GUARD } from '@nestjs/core';
-import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
-import { WorkspaceModule } from './workspace/workspace.module';
-import { ImageModule } from './image/image.module';
-import { ProjectModule } from './project/project.module';
-import { TaskModule } from './task/task.module';
-import { ProjectMemberModule } from './project-member/project-member.module';
-import { WorkspaceMemberModule } from './workspace-member/workspace-member.module';
-import { LabelModule } from './label/label.module';
-import { ActivityModule } from './activity/activity.module';
-import { SubtaskModule } from './subtask/subtask.module';
-import { CommentModule } from './comment/comment.module';
-import { EpicModule } from './epic/epic.module';
-import { MilestoneModule } from './milestone/milestone.module';
+import { WorkspaceModule } from './modules/workspace/workspace.module';
+import { ImageModule } from './modules/image/image.module';
+import { ProjectModule } from './modules/project/project.module';
+import { TaskModule } from './modules/task/task.module';
+import { ProjectMemberModule } from './modules/project-member/project-member.module';
+import { WorkspaceMemberModule } from './modules/workspace-member/workspace-member.module';
+import { LabelModule } from './modules/label/label.module';
+import { ActivityModule } from './modules/activity/activity.module';
+import { SubtaskModule } from './modules/subtask/subtask.module';
+import { CommentModule } from './modules/comment/comment.module';
+import { EpicModule } from './modules/epic/epic.module';
+import { MilestoneModule } from './modules/milestone/milestone.module';
+import { AuthGuard, RequestMiddleware } from './global';
 
 @Module({
   imports: [
@@ -37,6 +37,11 @@ import { MilestoneModule } from './milestone/milestone.module';
     ProjectMemberModule,
     LabelModule,
     ActivityModule,
+    BetterAuthModule.forRootAsync({
+      imports: [AuthModule],
+      useFactory: (auth) => ({ auth }),
+      inject: ['BETTER_AUTH'],
+    }),
     EventEmitterModule.forRoot({
       wildcard: true,
       delimiter: '.',
@@ -49,7 +54,7 @@ import { MilestoneModule } from './milestone/milestone.module';
   providers: [
     {
       provide: APP_GUARD,
-      useClass: JwtAuthGuard,
+      useClass: AuthGuard,
     },
   ],
 })

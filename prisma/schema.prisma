@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
@@ -16,7 +16,7 @@ model Activity {
   workspaceId String?  @db.Uuid
   projectId   String?  @db.Uuid
   taskId      String?  @db.Uuid
-  userId      String   @db.Uuid
+  userId      String
   createdAt   DateTime @default(now())
   user        User     @relation(fields: [userId], references: [id])
   task        Task[]
@@ -31,7 +31,7 @@ model Activity {
 model Approval {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   taskId    String   @db.Uuid
-  userId    String   @db.Uuid
+  userId    String
   createdAt DateTime @default(now())
   task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id])
@@ -53,36 +53,11 @@ model Attachment {
   @@index([taskId])
 }
 
-model Backlog {
-  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  title            String
-  description      String?
-  priority         Priority  @default(MEDIUM)
-  workspaceId      String    @db.Uuid
-  projectId        String?   @db.Uuid
-  createdById      String    @db.Uuid
-  promotedToTaskId String?   @db.Uuid
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  user             User      @relation(fields: [createdById], references: [id])
-  project          Project?  @relation(fields: [projectId], references: [id])
-  task             Task?     @relation(fields: [promotedToTaskId], references: [id])
-  workspace        Workspace @relation(fields: [workspaceId], references: [id])
-  labelId          String?   @db.Uuid
-  label            Label?    @relation(fields: [labelId], references: [id])
-
-  @@index([priority])
-  @@index([createdAt])
-  @@index([createdById])
-  @@index([projectId])
-  @@index([workspaceId])
-}
-
 model Comment {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   content   String
   taskId    String   @db.Uuid
-  userId    String   @db.Uuid
+  userId    String
   createdAt DateTime @default(now())
   task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id])
@@ -102,15 +77,16 @@ model Epic {
   completedAt DateTime?
   workspaceId String    @db.Uuid
   projectId   String?   @db.Uuid
-  createdById String    @db.Uuid
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  user        User      @relation(fields: [createdById], references: [id])
-  project     Project?  @relation(fields: [projectId], references: [id])
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
-  milestoneId String?   @db.Uuid
+
+  project     Project?   @relation(fields: [projectId], references: [id])
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id])
+  milestoneId String?    @db.Uuid
   milestone   Milestone? @relation(fields: [milestoneId], references: [id])
   tasks       Task[]
+  user        User?      @relation(fields: [userId], references: [id])
+  userId      String?
 
   @@index([projectId])
   @@index([workspaceId])
@@ -124,7 +100,7 @@ model Idea {
   priority         Priority   @default(MEDIUM)
   workspaceId      String     @db.Uuid
   projectId        String?    @db.Uuid
-  createdById      String     @db.Uuid
+  createdById      String
   promotedToTaskId String?    @db.Uuid
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
@@ -160,15 +136,14 @@ model Image {
 }
 
 model Label {
-  id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name      String
   bgColor   String
   textColor String
-  projectId String      @db.Uuid
-  project   Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String  @db.Uuid
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   tasks     Task[]
   ideas     Idea[]
-  backlogs  Backlog[]
 
   @@unique([projectId, name])
   @@index([name])
@@ -202,12 +177,11 @@ model Project {
   workspaceId   String          @db.Uuid
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
-  backlog       Backlog[]
   epic          Epic[]
   idea          Idea[]
   label         Label[]
   milestone     Milestone[]
-  image         Image?          
+  image         Image?
   workspace     Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   projectMember ProjectMember[]
   task          Task[]
@@ -218,7 +192,7 @@ model Project {
 model ProjectMember {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   projectId String   @db.Uuid
-  userId    String   @db.Uuid
+  userId    String
   role      Role
   joinedAt  DateTime @default(now())
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -242,35 +216,34 @@ model Subtask {
 }
 
 model Task {
-  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   taskNumber        Int
   title             String
   description       String?
-  progress          Int            @default(0)
-  status            TaskStatus     @default(TODO)
-  priority          Priority       @default(MEDIUM)
+  progress          Int          @default(0)
+  status            TaskStatus   @default(TODO)
+  priority          Priority     @default(MEDIUM)
   startDate         DateTime?
   dueDate           DateTime?
   completedAt       DateTime?
-  order             Int            @default(1000)
-  projectId         String         @db.Uuid
-  epicId            String?        @db.Uuid
-  requiredApprovals Int            @default(1)
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
+  order             Int          @default(1000)
+  projectId         String       @db.Uuid
+  epicId            String?      @db.Uuid
+  requiredApprovals Int          @default(1)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
   approval          Approval[]
   attachment        Attachment[]
-  backlog           Backlog[]
   comment           Comment[]
   idea              Idea[]
   images            Image[]
   subtask           Subtask[]
-  epic              Epic?          @relation(fields: [epicId], references: [id])
-  project           Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  assigneeId        String?        @db.Uuid
-  assignee          User?          @relation("TaskAssignee", fields: [assigneeId], references: [id])
-  labelId           String?        @db.Uuid
-  label             Label?         @relation(fields: [labelId], references: [id])
+  epic              Epic?        @relation(fields: [epicId], references: [id])
+  project           Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assigneeId        String?
+  assignee          User?        @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  labelId           String?      @db.Uuid
+  label             Label?       @relation(fields: [labelId], references: [id])
   activity          Activity[]
 
   @@index([dueDate])
@@ -280,19 +253,18 @@ model Task {
   @@index([status])
 }
 
-
 model User {
-  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email           String            @unique
-  name            String?
-  image           String?
-  password        String?
-  provider        Provider          @default(LOCAL)
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  id            String   @id
+  email         String   @unique
+  emailVerified Boolean  @default(true)
+  name          String?
+  image         String?
+  provider      Provider @default(LOCAL)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
   activity        Activity[]
   approval        Approval[]
-  backlog         Backlog[]
   comment         Comment[]
   epic            Epic[]
   idea            Idea[]
@@ -300,19 +272,36 @@ model User {
   assignedTasks   Task[]            @relation("TaskAssignee")
   workspace       Workspace[]
   workspaceMember WorkspaceMember[]
+  accounts        Account[]
 
   @@index([createdAt])
   @@index([email])
+}
+
+model Account {
+  id          String   @id
+  accountId   String
+  providerId  String
+  userId      String
+  accessToken String?  @db.Text
+  scope       String?
+  password    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
 }
 
 model Workspace {
   id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name            String
   inviteCode      String?           @unique
-  ownerId         String            @db.Uuid
+  ownerId         String
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
-  backlog         Backlog[]
   epic            Epic[]
   idea            Idea[]
   image           Image?
@@ -325,7 +314,7 @@ model Workspace {
 model WorkspaceMember {
   id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   workspaceId String    @db.Uuid
-  userId      String    @db.Uuid
+  userId      String
   role        Role
   joinedAt    DateTime  @default(now())
   user        User      @relation(fields: [userId], references: [id])

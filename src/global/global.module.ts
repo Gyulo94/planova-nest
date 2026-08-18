@@ -1,18 +1,17 @@
 import { HttpModule } from '@nestjs/axios';
 import { Global, Logger, Module } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from './prisma/prisma.service';
-import { RedisModule } from './redis/redis.module';
 import { WsAuthService } from './ws/ws-auth.service';
 import { WsLoggerService } from './ws/ws-logger.service';
 import { WsErrorService } from './ws/ws-error.service';
+import { RedisModule } from 'src/redis/redis.module';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { AuthModule } from 'src/modules/auth/auth.module';
 
 @Global()
 @Module({
-  imports: [HttpModule, RedisModule],
+  imports: [HttpModule, RedisModule, AuthModule],
   providers: [
     PrismaService,
-    JwtService,
     Logger,
     WsAuthService,
     WsLoggerService,
@@ -20,7 +19,6 @@ import { WsErrorService } from './ws/ws-error.service';
   ],
   exports: [
     PrismaService,
-    JwtService,
     Logger,
     HttpModule,
     RedisModule,

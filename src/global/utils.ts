@@ -1,39 +1,41 @@
-import { Response } from 'express';
-import {
-  JWT_REFRESH_KEY_EXPIRES_IN,
-  JWT_SECRET_KEY_EXPIRES_IN,
-} from './constants';
+import { ENCRYPTION_KEY } from './constants';
+import * as crypto from 'crypto';
 
-export function setCookies(
-  res: Response,
-  accessToken: string,
-  refreshToken: string,
-) {
-  res.cookie('accessToken', accessToken, {
-    httpOnly: false,
-    secure: true,
-    sameSite: 'none',
-    maxAge: JWT_SECRET_KEY_EXPIRES_IN * 1000,
-  });
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: false,
-    secure: true,
-    sameSite: 'none',
-    maxAge: JWT_REFRESH_KEY_EXPIRES_IN * 1000,
-  });
+const ALGORITHM = 'aes-256-gcm';
+
+const SECRET_KEY = crypto
+  .createHash('sha256')
+  .update(String(ENCRYPTION_KEY))
+  .digest();
+
+export function encrypt(text: string): string {
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv(ALGORITHM, SECRET_KEY, iv);
+
+  let encrypted = cipher.update(text, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+
+  const authTag = cipher.getAuthTag().toString('hex');
+
+  return `${iv.toString('hex')}:${authTag}:${encrypted}`;
 }
 
-export function clearCookies(res: Response) {
-  res.clearCookie('accessToken', {
-    httpOnly: false,
-    secure: true,
-    sameSite: 'none',
-  });
-  res.clearCookie('refreshToken', {
-    httpOnly: false,
-    secure: true,
-    sameSite: 'none',
-  });
+export function decrypt(cipherText: string): string {
+  const [ivHex, authTagHex, encryptedText] = cipherText.split(':');
+  if (!ivHex || !authTagHex || !encryptedText) {
+    throw new Error('유효하지 않은 암호화 데이터 포맷입니다.');
+  }
+
+  const iv = Buffer.from(ivHex, 'hex');
+  const authTag = Buffer.from(authTagHex, 'hex');
+  const decipher = crypto.createDecipheriv(ALGORITHM, SECRET_KEY, iv);
+
+  decipher.setAuthTag(authTag);
+
+  let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
+
+  return decrypted;
 }
 
 export function generateInviteCode(length: number): string {
@@ -67,4 +69,15 @@ export function isSameUrlSet(a: string[], b: string[]): boolean {
   const aSet = new Set(a);
   if (aSet.size !== b.length) return false;
   return b.every((url) => aSet.has(url));
+}
+
+export function generateRandomPastelColor() {
+  const hue = Math.floor(Math.random() * 360);
+  const saturation = Math.floor(Math.random() * 30) + 60;
+  const lightness = Math.floor(Math.random() * 10) + 85;
+
+  const bgColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+  const textColor = `hsl(${hue}, ${saturation + 10}%, 30%)`;
+
+  return { bgColor, textColor };
 }
