@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, Body, Put, Session } from '@nestjs/common';
+import { Controller, Delete, Body, Put, Session } from '@nestjs/common';
 import { UserService } from '../service/user.service';
 
 import { UpdateUserRequest } from '../request/update-user.request';
@@ -9,12 +9,6 @@ import type { UserSession } from '@thallesp/nestjs-better-auth';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-
-  @Get('session')
-  async getSession(@Session() session: UserSession) {
-    const response = await this.userService.getSession(session.user.id);
-    return response;
-  }
 
   @Message(ResponseMessage.UPDATE_PROFILE_SUCCESS)
   @Put('update')
