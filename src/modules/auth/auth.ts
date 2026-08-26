@@ -5,6 +5,7 @@ import Redis from 'ioredis';
 import {
   CLIENT_URL,
   encrypt,
+  GITHUB_CALLBACK_URL,
   GITHUB_CLIENT_ID,
   GITHUB_CLIENT_SECRET,
   SERVER_URL,
@@ -57,6 +58,7 @@ export function createAuth(prisma: PrismaService, redis: Redis) {
         clientId: GITHUB_CLIENT_ID || '',
         clientSecret: GITHUB_CLIENT_SECRET,
         scopes: ['user:email', 'repo'],
+        redirectURI: GITHUB_CALLBACK_URL,
       },
     },
 

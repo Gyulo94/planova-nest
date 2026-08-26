@@ -13,6 +13,7 @@ export const SESSION_TOKEN = process.env.SESSION_TOKEN;
 export const SESSION_DATA = process.env.SESSION_DATA;
 export const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 export const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
+export const GITHUB_CALLBACK_URL = process.env.GITHUB_CALLBACK_URL;
 export const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
 
 export const DEFAULT_TASK_LABELS = [

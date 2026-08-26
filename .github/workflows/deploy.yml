@@ -1,4 +1,4 @@
-name: CI/CD 파이프라인 (planova-server)
+name: CI/CD 파이프라인 (planova-nest)
 
 on:
   push:
@@ -25,7 +25,7 @@ jobs:
         run: npm run build
 
       - name: 도커 이미지 빌드
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/planova-nest .
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.SERVICE_NAME }} .
 
       - name: 도커 허브 로그인
         uses: docker/login-action@v3
@@ -34,7 +34,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: 도커 허브에 이미지 푸시
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/planova-nest
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/${{ secrets.SERVICE_NAME }}
 
       - name: 원격서버에 배포
         uses: appleboy/ssh-action@master
@@ -44,26 +44,32 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.REMOTE_PORT }}
           script: |
-            cd ${{ secrets.REMOTE_PROJECT_PATH }}
+            TARGET_DIR="${{ secrets.REMOTE_PROJECT_PATH }}"
+
+            if [ ! -d "$TARGET_DIR" ]; then
+              mkdir -p "$TARGET_DIR"
+            fi
+            cd "$TARGET_DIR"
+
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             echo "${{secrets.ENV_FILE}}" > ./.env
-            docker pull ${{ secrets.DOCKER_USERNAME }}/planova-nest:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.SERVICE_NAME }}:latest
 
-            docker stop planova-nest || true
-            docker rm planova-nest || true 
+            docker stop ${{ secrets.SERVICE_NAME }} || true
+            docker rm ${{ secrets.SERVICE_NAME }} || true 
 
             docker run --rm \
             --network nginx-proxy_gyubuntu_net \
             --env-file ./.env \
-            ${{ secrets.DOCKER_USERNAME }}/planova-nest:latest \
+            ${{ secrets.DOCKER_USERNAME }}/${{ secrets.SERVICE_NAME }}:latest \
             sh -c "npx prisma migrate deploy"
 
             docker run -d \
             -p 8005:8000 \
-            --name planova-nest \
+            --name ${{ secrets.SERVICE_NAME }} \
             --network nginx-proxy_gyubuntu_net \
             --env-file ./.env \
-            ${{ secrets.DOCKER_USERNAME }}/planova-nest:latest \
+            ${{ secrets.DOCKER_USERNAME }}/${{ secrets.SERVICE_NAME }}:latest \
             sh -c "npm run start:prod" 
             docker image prune -f
 
