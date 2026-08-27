@@ -17,6 +17,15 @@ export class MilestoneRepository {
     });
   }
 
+  async findLastMilestoneNumber(workspaceId: string): Promise<number> {
+    const lastMilestone = await this.prisma.milestone.findFirst({
+      where: { workspaceId },
+      orderBy: { milestoneNumber: 'desc' },
+      select: { milestoneNumber: true },
+    });
+    return lastMilestone?.milestoneNumber || 0;
+  }
+
   async findAllByProjectId(projectId: string): Promise<MilestonePayload[]> {
     return this.prisma.milestone.findMany({
       where: { projectId },

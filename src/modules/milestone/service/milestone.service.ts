@@ -18,9 +18,14 @@ export class MilestoneService {
 
   @Transactional()
   async create(request: MilestoneRequest, userId: string) {
-    const milestone = await this.milestoneRepository.create(
-      MilestoneRequest.toModel(request),
+    const lastNumber = await this.milestoneRepository.findLastMilestoneNumber(
+      request.workspaceId,
     );
+
+    const milestone = await this.milestoneRepository.create({
+      ...MilestoneRequest.toModel(request),
+      milestoneNumber: lastNumber + 1,
+    });
 
     const prefix = milestone.project ? `[${milestone.project.name}] ` : '';
 

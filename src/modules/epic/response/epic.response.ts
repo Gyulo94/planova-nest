@@ -19,6 +19,8 @@ export class EpicResponse {
   projectId?: string;
   createdAt: Date;
   updatedAt: Date;
+  milestoneId: string | null;
+  icon: string | null;
   user: UserResponse | null;
   project: ProjectResponse | null;
   workspace: WorkspaceResponse | null;
@@ -33,6 +35,8 @@ export class EpicResponse {
     const response = new EpicResponse();
     response.id = model.id;
     response.epicNumber = model.epicNumber;
+    response.milestoneId = model.milestoneId ?? null;
+    response.icon = model.icon ?? null;
     response.title = model.title;
     response.description = model.description ?? null;
     response.progress = model.progress;

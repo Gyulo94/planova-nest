@@ -13,6 +13,8 @@ export class MilestoneResponse {
   projectId: string;
   createdAt: Date;
   updatedAt: Date;
+  icon?: string | null;
+  milestoneNumber: number;
   project?: ProjectResponse;
   workspace?: WorkspaceResponse;
   epics?: EpicResponse[];
@@ -22,6 +24,8 @@ export class MilestoneResponse {
     const response = new MilestoneResponse();
     response.id = model.id;
     response.title = model.title;
+    response.milestoneNumber = model.milestoneNumber;
+    response.icon = model.icon ?? null;
     response.description = model.description ?? undefined;
     response.dueDate = model.dueDate;
     response.completed = model.completed;

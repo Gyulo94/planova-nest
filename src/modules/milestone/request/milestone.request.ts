@@ -4,6 +4,7 @@ import {
   IsString,
   IsDateString,
   IsBoolean,
+  IsNumber,
 } from 'class-validator';
 import { Prisma } from '@prisma/client';
 
@@ -32,9 +33,25 @@ export class MilestoneRequest {
   @IsString()
   projectId: string;
 
+  @IsOptional()
+  @IsNumber()
+  milestoneNumber: number;
+
+  @IsOptional()
+  @IsString()
+  icon?: string | null;
+
   static toModel(request: MilestoneRequest): Prisma.MilestoneCreateInput {
-    const { title, description, dueDate, completed, workspaceId, projectId } =
-      request;
+    const {
+      title,
+      description,
+      dueDate,
+      completed,
+      workspaceId,
+      projectId,
+      icon,
+      milestoneNumber,
+    } = request;
     return {
       title,
       description,
@@ -42,6 +59,8 @@ export class MilestoneRequest {
       completed: completed ?? false,
       workspace: { connect: { id: workspaceId } },
       project: { connect: { id: projectId } },
+      milestoneNumber,
+      icon,
     };
   }
 }

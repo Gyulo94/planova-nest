@@ -1,9 +1,4 @@
-import {
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  IsDateString,
-} from 'class-validator';
+import { IsOptional, IsString, IsDateString } from 'class-validator';
 
 export class EpicRequest {
   @IsOptional()
@@ -34,10 +29,15 @@ export class EpicRequest {
   @IsString()
   milestoneId?: string;
 
+  @IsOptional()
+  @IsString()
+  icon?: string;
+
   static toModel(request: EpicRequest) {
     return {
       title: request.title,
       description: request.description,
+      icon: request.icon,
       startDate: request.startDate ? new Date(request.startDate) : undefined,
       dueDate: request.dueDate ? new Date(request.dueDate) : undefined,
       milestone: request.milestoneId
