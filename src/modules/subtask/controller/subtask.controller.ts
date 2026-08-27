@@ -13,7 +13,7 @@ import { SubtaskService } from '../service/subtask.service';
 import { SubtaskRequest } from '../request/subtask.request';
 import type { UserSession } from '@thallesp/nestjs-better-auth';
 
-@Controller('subtasks')
+@Controller('project/:projectId/subtask')
 @UseGuards(ProjectMemberGuard)
 export class SubtaskController {
   constructor(private readonly subtaskService: SubtaskService) {}
