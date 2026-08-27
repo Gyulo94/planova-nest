@@ -22,6 +22,8 @@ export class TaskResponse {
   epic?: EpicResponse;
   assignee?: UserResponse | null;
   label?: LabelResponse | null;
+  createdAt: Date;
+  updatedAt: Date;
 
   static fromModel(model: Task): TaskResponse;
   static fromModel(model: TaskPayload): TaskResponse;
@@ -40,6 +42,8 @@ export class TaskResponse {
     response.dueDate = model.dueDate;
     response.completedAt = model.completedAt;
     response.order = model.order;
+    response.createdAt = model.createdAt;
+    response.updatedAt = model.updatedAt;
 
     if ('project' in model && model.project) {
       response.project = ProjectResponse.fromModel(model.project);
