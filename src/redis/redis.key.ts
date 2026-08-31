@@ -21,4 +21,7 @@ export const RedisKey = {
     workspaceActivities: (workspaceId: string, page: number, limit: number) =>
       `${PREFIX}:activity:workspace:${workspaceId}:${page}:${limit}`,
   },
+  idea: {
+    projectIdeas: (projectId: string) => `${PREFIX}:idea:project:${projectId}`,
+  },
 };

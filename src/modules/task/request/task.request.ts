@@ -1,10 +1,5 @@
 import { TaskStatus, Priority, Prisma } from '@prisma/client';
-import {
-  IsString,
-  IsOptional,
-  IsEnum,
-  IsDateString
-} from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsDateString } from 'class-validator';
 
 export class TaskRequest {
   @IsString()
@@ -42,6 +37,10 @@ export class TaskRequest {
   @IsString()
   epicId?: string;
 
+  @IsOptional()
+  @IsString()
+  description?: string;
+
   static toModel(
     request: TaskRequest,
     taskNumber: number,
@@ -49,6 +48,7 @@ export class TaskRequest {
     return {
       taskNumber,
       title: request.title,
+      description: request.description,
       status: request.status,
       priority: request.priority,
       startDate: request.startDate ? new Date(request.startDate) : undefined,

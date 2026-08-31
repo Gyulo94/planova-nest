@@ -42,4 +42,8 @@ export enum ResponseMessage {
 
   UPDATE_PROFILE_SUCCESS = '프로필이 성공적으로 업데이트되었습니다.',
   DELETE_USER_SUCCESS = '회원 탈퇴가 완료되었습니다.',
+
+  CREATE_IDEA_SUCCESS = '아이디어가 성공적으로 생성되었습니다.',
+  UPDATE_IDEA_SUCCESS = '아이디어가 성공적으로 수정되었습니다.',
+  DELETE_IDEA_SUCCESS = '아이디어가 성공적으로 삭제되었습니다.',
 }
