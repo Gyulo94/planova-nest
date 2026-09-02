@@ -13,21 +13,18 @@ import { Message } from 'src/global/decorators/message.decorator';
 import { ProjectRequest } from '../request/project.request';
 import { ResponseMessage } from 'src/global/enums/response-message.enum';
 import { ProjectResponse } from '../response/project.response';
-import { ProjectMemberService } from 'src/modules/project-member/service/project-member.service';
 import {
   CurrentWorkspaceMember,
+  CurrentProjectMember,
   ProjectMemberGuard,
   Role,
   WorkspaceMemberGuard,
 } from 'src/global';
-import type { WorkspaceMember } from '@prisma/client';
+import type { ProjectMember, WorkspaceMember } from '@prisma/client';
 
 @Controller('project')
 export class ProjectController {
-  constructor(
-    private readonly projectService: ProjectService,
-    private readonly projectMemberService: ProjectMemberService,
-  ) {}
+  constructor(private readonly projectService: ProjectService) {}
 
   @Message(ResponseMessage.CREATE_PROJECT_SUCCESS)
   @Post('create')
@@ -96,9 +93,9 @@ export class ProjectController {
   @UseGuards(ProjectMemberGuard)
   async deleteProject(
     @Param('projectId') projectId: string,
-    @CurrentWorkspaceMember() workspaceMember: WorkspaceMember,
+    @CurrentProjectMember() projectMember: ProjectMember,
   ): Promise<void> {
-    await this.projectService.deleteProject(projectId, workspaceMember.userId);
+    await this.projectService.deleteProject(projectId, projectMember.userId);
   }
 
   @Get(':projectId/task-counts')
