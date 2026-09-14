@@ -14,7 +14,9 @@ import { ApiException, ErrorCode } from 'src/global';
 
 const ACTIVITY_CATEGORY_PREFIXES: Record<ActivityCategory, string[]> = {
   [ActivityCategory.TASK]: ['TASK_', 'SUBTASK_', 'COMMENT_'],
-  [ActivityCategory.PLANNING]: ['IDEA_', 'EPIC_', 'MILESTONE_'],
+  [ActivityCategory.IDEA]: ['IDEA_'],
+  [ActivityCategory.EPIC]: ['EPIC_'],
+  [ActivityCategory.MILESTONE]: ['MILESTONE_'],
   [ActivityCategory.TROUBLESHOOTING]: ['TROUBLESHOOTING_'],
   [ActivityCategory.PROJECT]: ['PROJECT_', 'PROJECT_MEMBER_'],
 };

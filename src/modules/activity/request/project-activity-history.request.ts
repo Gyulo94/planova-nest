@@ -12,7 +12,9 @@ import {
 
 export enum ActivityCategory {
   TASK = 'TASK',
-  PLANNING = 'PLANNING',
+  IDEA = 'IDEA',
+  EPIC = 'EPIC',
+  MILESTONE = 'MILESTONE',
   TROUBLESHOOTING = 'TROUBLESHOOTING',
   PROJECT = 'PROJECT',
 }
