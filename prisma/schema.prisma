@@ -23,6 +23,7 @@ model Activity {
 
   @@index([createdAt])
   @@index([projectId])
+  @@index([projectId, createdAt])
   @@index([taskId])
   @@index([userId])
   @@index([workspaceId])

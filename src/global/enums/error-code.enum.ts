@@ -6,6 +6,7 @@ export enum ErrorCode {
   BAD_REQUEST = 'COMMON_001',
   FORBIDDEN = 'COMMON_002',
   UNAUTHORIZED = 'COMMON_003',
+  INVALID_DATE_RANGE = 'COMMON_004',
 
   // 인증 관련 에러
   INVALID_EMAIL_OR_PASSWORD = 'AUTH_001',
@@ -70,6 +71,10 @@ export const ErrorCodeMap: Record<
   [ErrorCode.UNAUTHORIZED]: {
     status: HttpStatus.UNAUTHORIZED,
     message: '인증이 필요합니다.',
+  },
+  [ErrorCode.INVALID_DATE_RANGE]: {
+    status: HttpStatus.BAD_REQUEST,
+    message: '시작일은 종료일보다 이후일 수 없습니다.',
   },
 
   // 인증 관련 에러

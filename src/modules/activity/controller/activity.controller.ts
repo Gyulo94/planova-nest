@@ -6,11 +6,13 @@ import {
   Query,
   Param,
   Session,
+  UseGuards,
 } from '@nestjs/common';
 import { ActivityService } from '../service/activity.service';
 import { ActivityRequest } from '../request/activity.request';
 import type { UserSession } from '@thallesp/nestjs-better-auth';
 import { ActivityResponse } from '../response/activity.response';
+import { ProjectMemberGuard } from 'src/global';
 
 @Controller('activity')
 export class ActivityController {
@@ -41,6 +43,7 @@ export class ActivityController {
   }
 
   @Get('project/:projectId')
+  @UseGuards(ProjectMemberGuard)
   async findByProject(
     @Param('projectId') projectId: string,
     @Query('page') page?: number,

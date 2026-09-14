@@ -43,6 +43,43 @@ export class ActivityRepository {
     });
   }
 
+  async findProjectActivityHistory(params: {
+    projectId: string;
+    userId?: string;
+    from?: Date;
+    to?: Date;
+    actionPrefixes?: string[];
+    skip: number;
+    take: number;
+  }): Promise<[ActivityPayload[], number]> {
+    const { projectId, userId, from, to, actionPrefixes, skip, take } = params;
+    const where: Prisma.ActivityWhereInput = {
+      projectId,
+      userId,
+      createdAt:
+        from || to
+          ? {
+              gte: from,
+              lte: to,
+            }
+          : undefined,
+      OR: actionPrefixes?.map((prefix) => ({
+        action: { startsWith: prefix },
+      })),
+    };
+
+    return this.prisma.$transaction([
+      this.prisma.activity.findMany({
+        where,
+        include: { user: true },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        skip,
+        take,
+      }),
+      this.prisma.activity.count({ where }),
+    ]);
+  }
+
   async findLastActivity(params: {
     taskId?: string;
     userId: string;

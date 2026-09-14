@@ -5,6 +5,19 @@ import { ActivityRequest } from '../request/activity.request';
 import { ActivityResponse } from '../response/activity.response';
 import { RedisService } from 'src/redis/serivce/redis.service';
 import { RedisKey } from 'src/redis/redis.key';
+import {
+  ActivityCategory,
+  ProjectActivityHistoryRequest,
+} from '../request/project-activity-history.request';
+import { ProjectActivityHistoryResponse } from '../response/project-activity-history.response';
+import { ApiException, ErrorCode } from 'src/global';
+
+const ACTIVITY_CATEGORY_PREFIXES: Record<ActivityCategory, string[]> = {
+  [ActivityCategory.TASK]: ['TASK_', 'SUBTASK_', 'COMMENT_'],
+  [ActivityCategory.PLANNING]: ['IDEA_', 'EPIC_', 'MILESTONE_'],
+  [ActivityCategory.TROUBLESHOOTING]: ['TROUBLESHOOTING_'],
+  [ActivityCategory.PROJECT]: ['PROJECT_', 'PROJECT_MEMBER_'],
+};
 
 @Injectable()
 export class ActivityService {
@@ -41,12 +54,12 @@ export class ActivityService {
     if (activity.projectId) {
       const pattern = `*activity:project:${activity.projectId}*`;
       await this.redisService.del(pattern);
-      setTimeout(() => this.redisService.del(pattern), 500);
+      setTimeout(() => void this.redisService.del(pattern), 500);
     }
     if (activity.workspaceId) {
       const pattern = `*activity:workspace:${activity.workspaceId}*`;
       await this.redisService.del(pattern);
-      setTimeout(() => this.redisService.del(pattern), 500);
+      setTimeout(() => void this.redisService.del(pattern), 500);
     }
 
     this.eventEmitter.emit('activity.created', activity);
@@ -85,7 +98,7 @@ export class ActivityService {
       const cached = await this.redisService.get(cacheKey);
       if (cached) {
         this.LOGGER.debug(`활동 로그 캐시 반환: ${cacheKey}`);
-        return JSON.parse(cached);
+        return JSON.parse(cached) as ActivityResponse[];
       }
     }
 
@@ -105,5 +118,39 @@ export class ActivityService {
     }
 
     return response;
+  }
+
+  async findProjectActivityHistory(
+    projectId: string,
+    request: ProjectActivityHistoryRequest,
+  ): Promise<ProjectActivityHistoryResponse> {
+    const { page = 1, limit = 30, category, userId, from, to } = request;
+    const fromDate = from ? new Date(from) : undefined;
+    const toDate = to ? new Date(to) : undefined;
+
+    if (fromDate && toDate && fromDate > toDate) {
+      throw new ApiException(ErrorCode.INVALID_DATE_RANGE);
+    }
+
+    const [activities, total] =
+      await this.activityRepository.findProjectActivityHistory({
+        projectId,
+        userId,
+        from: fromDate,
+        to: toDate,
+        actionPrefixes: category
+          ? ACTIVITY_CATEGORY_PREFIXES[category]
+          : undefined,
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+
+    return {
+      items: activities.map((activity) => ActivityResponse.fromModel(activity)),
+      page,
+      limit,
+      total,
+      hasNext: page * limit < total,
+    };
   }
 }
