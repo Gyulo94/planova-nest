@@ -23,6 +23,7 @@ import { CommentModule } from './modules/comment/comment.module';
 import { EpicModule } from './modules/epic/epic.module';
 import { MilestoneModule } from './modules/milestone/milestone.module';
 import { IdeaModule } from './modules/idea/idea.module';
+import { TroubleshootingModule } from './modules/troubleshooting/troubleshooting.module';
 import { AuthGuard, RequestMiddleware } from './global';
 
 @Module({
@@ -52,6 +53,7 @@ import { AuthGuard, RequestMiddleware } from './global';
     EpicModule,
     MilestoneModule,
     IdeaModule,
+    TroubleshootingModule,
   ],
   providers: [
     {

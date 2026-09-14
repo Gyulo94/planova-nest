@@ -197,6 +197,27 @@ export class TaskGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @OnEvent('troubleshooting.created')
+  handleTroubleshootingCreated(payload: { projectId: string; item: unknown }) {
+    this.server
+      .to(`project:${payload.projectId}`)
+      .emit('troubleshooting:created', payload.item);
+  }
+
+  @OnEvent('troubleshooting.updated')
+  handleTroubleshootingUpdated(payload: { projectId: string; item: unknown }) {
+    this.server
+      .to(`project:${payload.projectId}`)
+      .emit('troubleshooting:updated', payload.item);
+  }
+
+  @OnEvent('troubleshooting.deleted')
+  handleTroubleshootingDeleted(payload: { projectId: string; id: string }) {
+    this.server
+      .to(`project:${payload.projectId}`)
+      .emit('troubleshooting:deleted', payload.id);
+  }
+
   @OnEvent(['task.created', 'task.updated', 'task.deleted', 'task.reordered'])
   async handleTaskEventForEpics(payload: { projectId: string }) {
     const { projectId } = payload;

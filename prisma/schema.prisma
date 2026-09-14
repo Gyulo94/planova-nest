@@ -176,20 +176,21 @@ model Milestone {
 }
 
 model Project {
-  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name          String
-  description   String?
-  workspaceId   String          @db.Uuid
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  epic          Epic[]
-  idea          Idea[]
-  label         Label[]
-  milestone     Milestone[]
-  image         Image?
-  workspace     Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  projectMember ProjectMember[]
-  task          Task[]
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String
+  description     String?
+  workspaceId     String            @db.Uuid
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  epic            Epic[]
+  idea            Idea[]
+  label           Label[]
+  milestone       Milestone[]
+  image           Image?
+  workspace       Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  projectMember   ProjectMember[]
+  task            Task[]
+  troubleshooting Troubleshooting[]
 
   @@index([workspaceId])
 }
@@ -221,41 +222,60 @@ model Subtask {
 }
 
 model Task {
-  id                String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   taskNumber        Int
   title             String
   description       String?
-  progress          Int          @default(0)
-  status            TaskStatus   @default(TODO)
-  priority          Priority     @default(MEDIUM)
+  progress          Int               @default(0)
+  status            TaskStatus        @default(TODO)
+  priority          Priority          @default(MEDIUM)
   startDate         DateTime?
   dueDate           DateTime?
   completedAt       DateTime?
-  order             Int          @default(1000)
-  projectId         String       @db.Uuid
-  epicId            String?      @db.Uuid
-  requiredApprovals Int          @default(1)
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+  order             Int               @default(1000)
+  projectId         String            @db.Uuid
+  epicId            String?           @db.Uuid
+  requiredApprovals Int               @default(1)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
   approval          Approval[]
   attachment        Attachment[]
   comment           Comment[]
   idea              Idea[]
   images            Image[]
   subtask           Subtask[]
-  epic              Epic?        @relation(fields: [epicId], references: [id])
-  project           Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  epic              Epic?             @relation(fields: [epicId], references: [id])
+  project           Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
   assigneeId        String?
-  assignee          User?        @relation("TaskAssignee", fields: [assigneeId], references: [id])
-  labelId           String?      @db.Uuid
-  label             Label?       @relation(fields: [labelId], references: [id])
+  assignee          User?             @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  labelId           String?           @db.Uuid
+  label             Label?            @relation(fields: [labelId], references: [id])
   activity          Activity[]
+  troubleshooting   Troubleshooting[]
 
   @@index([dueDate])
   @@index([priority])
   @@index([projectId])
   @@index([projectId, status, order])
   @@index([status])
+}
+
+model Troubleshooting {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title              String
+  problem            String
+  solution           String
+  projectId          String   @db.Uuid
+  taskId             String?  @db.Uuid
+  taskNumberSnapshot Int
+  taskTitleSnapshot  String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  project            Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task               Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@index([projectId, updatedAt])
+  @@index([taskId])
 }
 
 model User {

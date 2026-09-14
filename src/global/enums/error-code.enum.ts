@@ -44,6 +44,10 @@ export enum ErrorCode {
   TASK_NOT_FOUND = 'TASK_001',
   INVALID_TASK_STATUS = 'TASK_002',
   COMMENT_NOT_FOUND = 'COMMENT_001',
+
+  // 트러블슈팅 관련 에러
+  TROUBLESHOOTING_NOT_FOUND = 'TROUBLESHOOTING_001',
+  INVALID_TASK_IN_PROJECT = 'TROUBLESHOOTING_002',
 }
 
 export const ErrorCodeMap: Record<
@@ -170,5 +174,15 @@ export const ErrorCodeMap: Record<
   [ErrorCode.COMMENT_NOT_FOUND]: {
     status: HttpStatus.BAD_REQUEST,
     message: '댓글을 찾을 수 없습니다.',
+  },
+
+  // 트러블슈팅 관련 에러
+  [ErrorCode.TROUBLESHOOTING_NOT_FOUND]: {
+    status: HttpStatus.BAD_REQUEST,
+    message: '트러블슈팅을 찾을 수 없습니다.',
+  },
+  [ErrorCode.INVALID_TASK_IN_PROJECT]: {
+    status: HttpStatus.BAD_REQUEST,
+    message: '이 프로젝트에 속한 작업을 선택해주세요.',
   },
 };

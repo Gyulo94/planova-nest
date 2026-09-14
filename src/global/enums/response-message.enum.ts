@@ -46,4 +46,8 @@ export enum ResponseMessage {
   CREATE_IDEA_SUCCESS = '아이디어가 성공적으로 생성되었습니다.',
   UPDATE_IDEA_SUCCESS = '아이디어가 성공적으로 수정되었습니다.',
   DELETE_IDEA_SUCCESS = '아이디어가 성공적으로 삭제되었습니다.',
+
+  CREATE_TROUBLESHOOTING_SUCCESS = '트러블슈팅 기록이 성공적으로 생성되었습니다.',
+  UPDATE_TROUBLESHOOTING_SUCCESS = '트러블슈팅 기록이 성공적으로 수정되었습니다.',
+  DELETE_TROUBLESHOOTING_SUCCESS = '트러블슈팅 기록이 성공적으로 삭제되었습니다.',
 }
