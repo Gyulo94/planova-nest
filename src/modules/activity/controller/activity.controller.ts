@@ -12,7 +12,7 @@ import { ActivityService } from '../service/activity.service';
 import { ActivityRequest } from '../request/activity.request';
 import type { UserSession } from '@thallesp/nestjs-better-auth';
 import { ActivityResponse } from '../response/activity.response';
-import { ProjectMemberGuard } from 'src/global';
+import { ProjectMemberGuard, WorkspaceMemberGuard } from 'src/global';
 
 @Controller('activity')
 export class ActivityController {
@@ -26,20 +26,23 @@ export class ActivityController {
     if (!request.userId) {
       request.userId = session.user.id;
     }
-    return this.activityService.createActivity(request);
+    const response = await this.activityService.createActivity(request);
+    return response;
   }
 
   @Get('workspace/:workspaceId')
+  @UseGuards(WorkspaceMemberGuard)
   async findByWorkspace(
     @Param('workspaceId') workspaceId: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ): Promise<ActivityResponse[]> {
-    return this.activityService.findActivities({
+    const response = await this.activityService.findActivities({
       workspaceId,
       page: page ? Number(page) : undefined,
       limit: limit ? Number(limit) : undefined,
     });
+    return response;
   }
 
   @Get('project/:projectId')
@@ -49,11 +52,12 @@ export class ActivityController {
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ): Promise<ActivityResponse[]> {
-    return this.activityService.findActivities({
+    const response = await this.activityService.findActivities({
       projectId,
       page: page ? Number(page) : undefined,
       limit: limit ? Number(limit) : undefined,
     });
+    return response;
   }
 
   @Get('task/:taskId')
@@ -62,10 +66,11 @@ export class ActivityController {
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ): Promise<ActivityResponse[]> {
-    return this.activityService.findActivities({
+    const response = await this.activityService.findActivities({
       taskId,
       page: page ? Number(page) : undefined,
       limit: limit ? Number(limit) : undefined,
     });
+    return response;
   }
 }

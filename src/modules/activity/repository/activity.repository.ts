@@ -80,6 +80,62 @@ export class ActivityRepository {
     ]);
   }
 
+  async findWorkspaceActivityHistory(params: {
+    workspaceId: string;
+    projectId?: string;
+    userId?: string;
+    from?: Date;
+    to?: Date;
+    actionPrefixes?: string[];
+    skip: number;
+    take: number;
+  }): Promise<[ActivityPayload[], number]> {
+    const {
+      workspaceId,
+      projectId,
+      userId,
+      from,
+      to,
+      actionPrefixes,
+      skip,
+      take,
+    } = params;
+    const where: Prisma.ActivityWhereInput = {
+      workspaceId,
+      projectId,
+      userId,
+      createdAt:
+        from || to
+          ? {
+              gte: from,
+              lte: to,
+            }
+          : undefined,
+      OR: actionPrefixes?.map((prefix) => ({
+        action: { startsWith: prefix },
+      })),
+    };
+
+    return this.prisma.$transaction([
+      this.prisma.activity.findMany({
+        where,
+        include: { user: true },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        skip,
+        take,
+      }),
+      this.prisma.activity.count({ where }),
+    ]);
+  }
+
+  async findProjectSummariesByIds(projectIds: string[]) {
+    if (projectIds.length === 0) return [];
+    return this.prisma.project.findMany({
+      where: { id: { in: projectIds } },
+      select: { id: true, name: true },
+    });
+  }
+
   async findLastActivity(params: {
     taskId?: string;
     userId: string;

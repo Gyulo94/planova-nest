@@ -5,21 +5,15 @@ import { ActivityRequest } from '../request/activity.request';
 import { ActivityResponse } from '../response/activity.response';
 import { RedisService } from 'src/redis/serivce/redis.service';
 import { RedisKey } from 'src/redis/redis.key';
-import {
-  ActivityCategory,
-  ProjectActivityHistoryRequest,
-} from '../request/project-activity-history.request';
+import { ProjectActivityHistoryRequest } from '../request/project-activity-history.request';
 import { ProjectActivityHistoryResponse } from '../response/project-activity-history.response';
-import { ApiException, ErrorCode } from 'src/global';
-
-const ACTIVITY_CATEGORY_PREFIXES: Record<ActivityCategory, string[]> = {
-  [ActivityCategory.TASK]: ['TASK_', 'SUBTASK_', 'COMMENT_'],
-  [ActivityCategory.IDEA]: ['IDEA_'],
-  [ActivityCategory.EPIC]: ['EPIC_'],
-  [ActivityCategory.MILESTONE]: ['MILESTONE_'],
-  [ActivityCategory.TROUBLESHOOTING]: ['TROUBLESHOOTING_'],
-  [ActivityCategory.PROJECT]: ['PROJECT_', 'PROJECT_MEMBER_'],
-};
+import {
+  ACTIVITY_CATEGORY_PREFIXES,
+  ApiException,
+  ErrorCode,
+} from 'src/global';
+import { WorkspaceActivityHistoryRequest } from '../request/workspace-activity-history.request';
+import { WorkspaceActivityHistoryResponse } from '../response/workspace-activity-history.response';
 
 @Injectable()
 export class ActivityService {
@@ -149,6 +143,66 @@ export class ActivityService {
 
     return {
       items: activities.map((activity) => ActivityResponse.fromModel(activity)),
+      page,
+      limit,
+      total,
+      hasNext: page * limit < total,
+    };
+  }
+
+  async findWorkspaceActivityHistory(
+    workspaceId: string,
+    request: WorkspaceActivityHistoryRequest,
+  ): Promise<WorkspaceActivityHistoryResponse> {
+    const {
+      page = 1,
+      limit = 30,
+      category,
+      projectId,
+      userId,
+      from,
+      to,
+    } = request;
+    const fromDate = from ? new Date(from) : undefined;
+    const toDate = to ? new Date(to) : undefined;
+
+    if (fromDate && toDate && fromDate > toDate) {
+      throw new ApiException(ErrorCode.INVALID_DATE_RANGE);
+    }
+
+    const [activities, total] =
+      await this.activityRepository.findWorkspaceActivityHistory({
+        workspaceId,
+        projectId,
+        userId,
+        from: fromDate,
+        to: toDate,
+        actionPrefixes: category
+          ? ACTIVITY_CATEGORY_PREFIXES[category]
+          : undefined,
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+    const projectIds = [
+      ...new Set(
+        activities.flatMap((activity) =>
+          activity.projectId ? [activity.projectId] : [],
+        ),
+      ),
+    ];
+    const projects =
+      await this.activityRepository.findProjectSummariesByIds(projectIds);
+    const projectsById = new Map(
+      projects.map((project) => [project.id, project]),
+    );
+
+    return {
+      items: activities.map((activity) => ({
+        ...ActivityResponse.fromModel(activity),
+        project: activity.projectId
+          ? (projectsById.get(activity.projectId) ?? null)
+          : null,
+      })),
       page,
       limit,
       total,

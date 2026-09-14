@@ -1,3 +1,5 @@
+import { ActivityCategory } from 'src/modules/activity/request/project-activity-history.request';
+
 export const PORT = process.env.PORT;
 export const DATABASE_URL = process.env.DATABASE_URL;
 export const NODE_ENV = process.env.NODE_ENV;
@@ -23,3 +25,13 @@ export const DEFAULT_TASK_LABELS = [
   { name: '테스트', bgColor: '#dcfce7', textColor: '#15803d' },
   { name: '버그', bgColor: '#fee2e2', textColor: '#7f1d1d' },
 ];
+
+export const ACTIVITY_CATEGORY_PREFIXES: Record<ActivityCategory, string[]> = {
+  [ActivityCategory.TASK]: ['TASK_', 'SUBTASK_', 'COMMENT_'],
+  [ActivityCategory.IDEA]: ['IDEA_'],
+  [ActivityCategory.EPIC]: ['EPIC_'],
+  [ActivityCategory.MILESTONE]: ['MILESTONE_'],
+  [ActivityCategory.TROUBLESHOOTING]: ['TROUBLESHOOTING_'],
+  [ActivityCategory.PROJECT]: ['PROJECT_', 'PROJECT_MEMBER_'],
+  [ActivityCategory.WORKSPACE]: ['WORKSPACE_', 'WORKSPACE_MEMBER_'],
+};

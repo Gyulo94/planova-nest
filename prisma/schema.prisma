@@ -27,6 +27,7 @@ model Activity {
   @@index([taskId])
   @@index([userId])
   @@index([workspaceId])
+  @@index([workspaceId, createdAt])
 }
 
 model Approval {
