@@ -18,6 +18,7 @@ export enum ActivityCategory {
   TROUBLESHOOTING = 'TROUBLESHOOTING',
   PROJECT = 'PROJECT',
   WORKSPACE = 'WORKSPACE',
+  DOCUMENTATION = 'DOCUMENTATION',
 }
 
 export class ProjectActivityHistoryRequest {

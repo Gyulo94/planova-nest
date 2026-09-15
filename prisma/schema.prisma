@@ -178,23 +178,53 @@ model Milestone {
 }
 
 model Project {
-  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id              String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name            String
   description     String?
-  workspaceId     String            @db.Uuid
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  workspaceId     String                @db.Uuid
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
   epic            Epic[]
   idea            Idea[]
   label           Label[]
   milestone       Milestone[]
   image           Image?
-  workspace       Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace       Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   projectMember   ProjectMember[]
   task            Task[]
   troubleshooting Troubleshooting[]
+  documentation   ProjectDocumentation?
 
   @@index([workspaceId])
+}
+
+model ProjectDocumentation {
+  id        String                        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId String                        @unique @db.Uuid
+  createdAt DateTime                      @default(now())
+  updatedAt DateTime                      @updatedAt
+  project   Project                       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  versions  ProjectDocumentationVersion[]
+
+  @@index([projectId])
+}
+
+model ProjectDocumentationVersion {
+  id              String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  documentationId String               @db.Uuid
+  version         Int
+  title           String
+  content         String
+  sourceSummary   Json?
+  createdById     String
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  documentation   ProjectDocumentation @relation(fields: [documentationId], references: [id], onDelete: Cascade)
+  createdBy       User                 @relation(fields: [createdById], references: [id])
+
+  @@unique([documentationId, version])
+  @@index([createdById])
+  @@index([documentationId, version])
 }
 
 model ProjectMember {
@@ -289,16 +319,17 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  activity        Activity[]
-  approval        Approval[]
-  comment         Comment[]
-  epic            Epic[]
-  idea            Idea[]
-  projectMember   ProjectMember[]
-  assignedTasks   Task[]            @relation("TaskAssignee")
-  workspace       Workspace[]
-  workspaceMember WorkspaceMember[]
-  accounts        Account[]
+  activity              Activity[]
+  approval              Approval[]
+  comment               Comment[]
+  epic                  Epic[]
+  idea                  Idea[]
+  projectMember         ProjectMember[]
+  assignedTasks         Task[]                        @relation("TaskAssignee")
+  workspace             Workspace[]
+  workspaceMember       WorkspaceMember[]
+  documentationVersions ProjectDocumentationVersion[]
+  accounts              Account[]
 
   @@index([createdAt])
   @@index([email])

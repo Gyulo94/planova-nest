@@ -50,4 +50,8 @@ export enum ResponseMessage {
   CREATE_TROUBLESHOOTING_SUCCESS = '트러블슈팅 기록이 성공적으로 생성되었습니다.',
   UPDATE_TROUBLESHOOTING_SUCCESS = '트러블슈팅 기록이 성공적으로 수정되었습니다.',
   DELETE_TROUBLESHOOTING_SUCCESS = '트러블슈팅 기록이 성공적으로 삭제되었습니다.',
+
+  GENERATE_DOCUMENTATION_SUCCESS = '프로젝트 문서를 생성했습니다.',
+  UPDATE_DOCUMENTATION_SUCCESS = '프로젝트 문서를 저장했습니다.',
+  RESTORE_DOCUMENTATION_SUCCESS = '선택한 문서를 새 버전으로 복원했습니다.',
 }

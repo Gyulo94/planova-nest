@@ -49,6 +49,11 @@ export enum ErrorCode {
   // 트러블슈팅 관련 에러
   TROUBLESHOOTING_NOT_FOUND = 'TROUBLESHOOTING_001',
   INVALID_TASK_IN_PROJECT = 'TROUBLESHOOTING_002',
+
+  // 프로젝트 문서 관련 에러
+  DOCUMENTATION_NOT_FOUND = 'DOCUMENTATION_001',
+  DOCUMENT_VERSION_NOT_FOUND = 'DOCUMENTATION_002',
+  DOCUMENT_VERSION_NOT_CURRENT = 'DOCUMENTATION_003',
 }
 
 export const ErrorCodeMap: Record<
@@ -189,5 +194,17 @@ export const ErrorCodeMap: Record<
   [ErrorCode.INVALID_TASK_IN_PROJECT]: {
     status: HttpStatus.BAD_REQUEST,
     message: '이 프로젝트에 속한 작업을 선택해주세요.',
+  },
+  [ErrorCode.DOCUMENTATION_NOT_FOUND]: {
+    status: HttpStatus.BAD_REQUEST,
+    message: '프로젝트 문서를 찾을 수 없습니다.',
+  },
+  [ErrorCode.DOCUMENT_VERSION_NOT_FOUND]: {
+    status: HttpStatus.BAD_REQUEST,
+    message: '프로젝트 문서 버전을 찾을 수 없습니다.',
+  },
+  [ErrorCode.DOCUMENT_VERSION_NOT_CURRENT]: {
+    status: HttpStatus.CONFLICT,
+    message: '현재 버전만 수정할 수 있습니다.',
   },
 };

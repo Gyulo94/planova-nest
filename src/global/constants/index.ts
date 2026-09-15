@@ -34,4 +34,5 @@ export const ACTIVITY_CATEGORY_PREFIXES: Record<ActivityCategory, string[]> = {
   [ActivityCategory.TROUBLESHOOTING]: ['TROUBLESHOOTING_'],
   [ActivityCategory.PROJECT]: ['PROJECT_', 'PROJECT_MEMBER_'],
   [ActivityCategory.WORKSPACE]: ['WORKSPACE_', 'WORKSPACE_MEMBER_'],
+  [ActivityCategory.DOCUMENTATION]: ['DOCUMENTATION_'],
 };
