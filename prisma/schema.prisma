@@ -84,7 +84,7 @@ model Epic {
   updatedAt   DateTime  @updatedAt
 
   project     Project?   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  workspace   Workspace  @relation(fields: [workspaceId], references: [id])
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   milestoneId String?    @db.Uuid
   milestone   Milestone? @relation(fields: [milestoneId], references: [id])
   tasks       Task[]
@@ -112,7 +112,7 @@ model Idea {
   user             User       @relation(fields: [createdById], references: [id])
   project          Project?   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   task             Task?      @relation(fields: [promotedToTaskId], references: [id])
-  workspace        Workspace  @relation(fields: [workspaceId], references: [id])
+  workspace        Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   labelId          String?    @db.Uuid
   label            Label?     @relation(fields: [labelId], references: [id])
 
@@ -168,7 +168,7 @@ model Milestone {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  workspace       Workspace @relation(fields: [workspaceId], references: [id])
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   epics           Epic[]
 
   @@index([completed])
